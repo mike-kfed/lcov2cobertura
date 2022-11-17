@@ -1,0 +1,11 @@
+[package]
+name = "lcov2xml"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+anyhow = "1.0.66"
+clap = { version = "4.0", features = ["derive"]}
+lcov2corbertura = { path = "lcov2corbertura" }

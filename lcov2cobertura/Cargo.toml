@@ -3,10 +3,10 @@ name = "lcov2cobertura"
 version = "1.0.1"
 edition = "2021"
 license = "Apache-2.0"
-license-file = "../LICENSE"
 description = "convert LCOV info file to cobertura XML format"
 repository = "https://github.com/mike-kfed/lcov2cobertura"
 keywords = ["coverage", "gitlab", "cobertura", "lcov"]
+rust-version = "1.59"
 
 [dependencies]
 anyhow = "1.0.66"

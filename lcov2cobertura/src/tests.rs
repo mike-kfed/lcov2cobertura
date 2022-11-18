@@ -142,7 +142,10 @@ fn test_generate_cobertura_xml() {
 #[test]
 fn test_demangle() {
     let lcov = "TN:\nSF:foo/foo.cpp\nFN:3,_ZN3Foo6answerEv\nFNDA:1,_ZN3Foo6answerEv\nFN:8,_ZN3Foo3sqrEi\nFNDA:1,_ZN3Foo3sqrEi\nDA:3,1\nDA:5,1\nDA:8,1\nDA:10,1\nend_of_record";
+    #[cfg(target_os = "macos")]
     let demangler = demangle::CppDemangler::new("/opt/homebrew/opt/binutils/bin/c++filt").unwrap();
+    #[cfg(not(target_os = "macos"))]
+    let demangler = demangle::CppDemangler::new("c++filt").unwrap();
     let result = parse_lines(lcov.as_bytes().lines(), ".", vec![]).unwrap();
     let lcov_xml = coverage_as_string(&result, 1346815648000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>

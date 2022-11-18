@@ -60,7 +60,7 @@ fn main() -> anyhow::Result<()> {
         lcov2xml::parse_lines(
             merged.as_bytes().lines(),
             args.base_dir.as_path(),
-            excludes.clone(),
+            &excludes,
         )?
     } else {
         let filename = args
@@ -68,11 +68,7 @@ fn main() -> anyhow::Result<()> {
             .get(0)
             .ok_or_else(|| anyhow::anyhow!("no filename given"))?
             .to_path_buf();
-        lcov2xml::parse_fn(
-            filename.as_path(),
-            args.base_dir.as_path(),
-            excludes.clone(),
-        )?
+        lcov2xml::parse_file(filename.as_path(), args.base_dir.as_path(), &excludes)?
     };
 
     // this is done repetitively to avoid dynamic dispatching. when a fourth demangler is added

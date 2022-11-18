@@ -291,10 +291,10 @@ impl CoverageData {
 }
 
 /// parses from filename
-pub fn parse_fn<P: AsRef<Path>>(
+pub fn parse_file<P: AsRef<Path>>(
     filename: P,
     base_dir: P,
-    excludes: Vec<&str>,
+    excludes: &[&str],
 ) -> anyhow::Result<CoverageData> {
     let file = std::fs::File::open(filename)?;
     let lines = std::io::BufReader::new(file).lines();
@@ -306,7 +306,7 @@ pub fn parse_fn<P: AsRef<Path>>(
 pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
     lines: Lines<B>,
     base_dir: P,
-    excludes: Vec<&str>,
+    excludes: &[&str],
 ) -> anyhow::Result<CoverageData> {
     let base_dir: &Path = base_dir.as_ref();
     let mut cov_data = CoverageData {

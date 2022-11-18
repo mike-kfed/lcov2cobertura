@@ -136,7 +136,7 @@ fn test_generate_cobertura_xml() {
 </coverage>"#;
     let demangler = demangle::NullDemangler::new();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_as_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
     assert_eq!(lcov_xml, xml);
 }
 
@@ -148,7 +148,7 @@ fn test_demangle() {
     #[cfg(not(target_os = "macos"))]
     let demangler = demangle::CppDemangler::new("c++filt").unwrap();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_as_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "https://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage branch-rate="0" branches-covered="0" branches-valid="0" complexity="0" line-rate="1" lines-covered="4" lines-valid="4" timestamp="1346815648000" version="2.0.3">
@@ -190,7 +190,7 @@ fn test_demangle_rust() {
     let lcov = "TN:\nSF:foo/foo.cpp\nFN:3,_RNvC6_123foo3bar\nFNDA:1,_RINbNbCskIICzLVDPPb_5alloc5alloc8box_freeDINbNiB4_5boxed5FnBoxuEp6OutputuEL_ECs1iopQbuBiw2_3std\nFN:8,_RC3foo.llvm.9D1C9369\nFNDA:1,_RC3foo.llvm.9D1C9369\nDA:3,1\nDA:5,1\nDA:8,1\nDA:10,1\nend_of_record";
     let demangler = demangle::RustDemangler::new();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_as_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "https://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage branch-rate="0" branches-covered="0" branches-valid="0" complexity="0" line-rate="1" lines-covered="4" lines-valid="4" timestamp="1346815648000" version="2.0.3">

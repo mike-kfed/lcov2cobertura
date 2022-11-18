@@ -598,7 +598,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
 }
 
 /// convenience function to convert coverage data into a XML String
-pub fn coverage_as_string<D: Demangler>(
+pub fn coverage_to_string<D: Demangler>(
     cov_data: &CoverageData,
     timestamp: u64,
     demangler: D,

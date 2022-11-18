@@ -4,11 +4,17 @@ use rustc_demangle::demangle;
 use std::io::{self, BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
+/// Basic interface to demangle function/method names
 pub trait Demangler {
+    /// demangles an identifier
     fn demangle(&mut self, ident: &str) -> io::Result<String>;
+    /// consumes the instance closing opened resources
     fn stop(self) -> io::Result<()>;
 }
 
+/// C++ demangling, actually accepts any demangler tool that works over stdin/stdout
+/// it writes the mangled named to spawned process' stdin and reads the demangled response from
+/// stdout
 pub struct CppDemangler {
     child: Child,
     child_in: ChildStdin,
@@ -16,6 +22,7 @@ pub struct CppDemangler {
 }
 
 impl CppDemangler {
+    /// pass in full path to command that does the demangling
     pub fn new(cmd: &str) -> io::Result<Self> {
         let mut child = Command::new(cmd)
             .stdin(Stdio::piped())
@@ -45,11 +52,19 @@ impl Demangler for CppDemangler {
     }
 }
 
+/// Demangles rustc names, uses [rustc_demangle](https://docs.rs/rustc-demangle/) crate
 pub struct RustDemangler {
     /// strips crate disambiguators
     disambiguator: Regex,
 }
+impl Default for RustDemangler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RustDemangler {
+    /// creates the Regex instance needed for later demangling
     pub fn new() -> Self {
         Self {
             disambiguator: Regex::new(r"\[[0-9a-f]{5,16}\]::").unwrap(),
@@ -67,8 +82,16 @@ impl Demangler for RustDemangler {
     }
 }
 
+/// default demangler, does nothing to the identifier names
 pub struct NullDemangler {}
+impl Default for NullDemangler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NullDemangler {
+    /// constructs the NullDemangler
     pub fn new() -> Self {
         Self {}
     }

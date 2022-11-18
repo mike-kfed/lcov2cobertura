@@ -445,6 +445,7 @@ macro_rules! s {
     };
 }
 
+/// dumps cobertura XML into given Writer object
 pub fn dump_xml<D: Demangler, W: Write>(
     writer: W,
     cov_data: &CoverageData,
@@ -576,6 +577,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
     Ok(writer.into_inner())
 }
 
+/// convenience function to convert coverage data into a XML String
 pub fn coverage_as_string<D: Demangler>(
     cov_data: &CoverageData,
     timestamp: u64,
@@ -590,6 +592,7 @@ pub fn coverage_as_string<D: Demangler>(
     Ok(output)
 }
 
+/// convenience function to write coverage data to a XML file
 pub fn coverage_to_file<P: AsRef<Path>, D: Demangler>(
     filename: P,
     cov_data: &CoverageData,

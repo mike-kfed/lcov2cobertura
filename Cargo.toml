@@ -2,6 +2,11 @@
 name = "lcov2xml"
 version = "1.0.0"
 edition = "2021"
+license-file = "LICENSE"
+description = "convert LCOV info file to cobertura XML format"
+repository = "https://github.com/mike-kfed/lcov2cobertura"
+keywords = ["coverage", "gitlab", "cobertura", "lcov"]
+categories = ["command-line-utilities"]
 
 [workspace]
 

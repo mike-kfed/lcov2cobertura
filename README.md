@@ -1,6 +1,6 @@
-# lcov2corbertura
+# lcov2cobertura
 
-converts lcov info files to corbertura XML
+converts lcov info files to cobertura XML
 
 Idea is for this to be a library for [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) but also a more performant standalone application replacing the Python based [lcov-to-cobertura-xml](https://github.com/eriwen/lcov-to-cobertura-xml)
 
@@ -30,6 +30,6 @@ time cargo run --release -- lcov.info
 
 |         | Python 3.10                  | Rust 1.65              |
 | ------- | ---------------------------- | ---------------------- |
-| what    | lcov-to-cobertura-xml v2.0.2 | lcov2corbertura v1.0.0 |
+| what    | lcov-to-cobertura-xml v2.0.2 | lcov2cobertura v1.0.0 |
 | runtime | 0.38secs                     | 0.32sec                |
 | memory  | 64MiB                        | 3MiB                   |

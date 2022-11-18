@@ -1,6 +1,6 @@
 [package]
-name = "lcov2corbertura"
-version = "0.1.0"
+name = "lcov2cobertura"
+version = "1.0.0"
 edition = "2021"
 
 [dependencies]
@@ -10,4 +10,4 @@ regex = "1.7.0"
 rustc-demangle = "0.1.21"
 
 [lib]
-name = "lcov2corbertura"
+name = "lcov2cobertura"

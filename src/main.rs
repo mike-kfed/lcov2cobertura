@@ -5,7 +5,7 @@ use std::io::BufRead;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use lcov2corbertura as lcov2xml;
+use lcov2cobertura as lcov2xml;
 
 /// Cmd line arguments
 #[derive(Parser, Debug)]

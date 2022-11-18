@@ -1,4 +1,4 @@
-//! Library to convert lcov data to corbertura XML files
+//! Library to convert lcov data to cobertura XML files
 use std::collections::{BTreeMap, HashMap};
 use std::io::{BufRead, Cursor, Lines, Write};
 use std::path::Path;

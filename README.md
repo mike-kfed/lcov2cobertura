@@ -8,7 +8,7 @@ Idea is for this to be a library for [cargo-llvm-cov](https://github.com/taiki-e
 
 - can demangle C++ names
 - can demangle rustc names
-- TODO: merges multiple lcov reports into one
+- merges multiple lcov reports into one
 
 ## Usage
 

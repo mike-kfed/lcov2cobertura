@@ -180,6 +180,10 @@ impl CompSummary for CoverageData {
     }
 }
 
+// safety: using lots of unwraps on HashMap entries, should be safe because only internal use
+// based on already parsed data which should have integrity. Malformed LCOV files might cause a
+// panic though.
+#[allow(clippy::unwrap_used)]
 impl CoverageData {
     fn update_line_hits(
         &mut self,
@@ -306,7 +310,10 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
 ) -> anyhow::Result<CoverageData> {
     let base_dir: &Path = base_dir.as_ref();
     let mut cov_data = CoverageData {
-        base_dir: base_dir.to_str().unwrap().to_string(),
+        base_dir: base_dir
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("base_dir cannot be converted to string"))?
+            .to_string(),
         ..Default::default()
     };
     let mut relative_file_name = String::new();
@@ -319,7 +326,7 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
 
         match input_type {
             Some("SF") => {
-                let file_name = line.unwrap();
+                let file_name = line.ok_or_else(|| anyhow::anyhow!("SF entry has no filename"))?;
                 let file_path = Path::new(file_name);
                 // TODO: was `relative_file_name = os.path.relpath(file_name, self.base_dir)`
                 // does not do the same as strip_prefix, but I am fairly certain it was the idea
@@ -328,7 +335,9 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                     .strip_prefix(base_dir)
                     .unwrap_or(file_path)
                     .to_str()
-                    .unwrap()
+                    .ok_or_else(|| {
+                        anyhow::anyhow!("relative_file_name cannot be converted to string")
+                    })?
                     .to_owned();
                 let elems = relative_file_name
                     .split(std::path::MAIN_SEPARATOR)
@@ -341,10 +350,12 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                     .insert_class(&relative_file_name);
             }
             Some("DA") => {
-                let mut split = line.unwrap().split(',');
+                let mut split = line
+                    .ok_or_else(|| anyhow::anyhow!("DA entry has no fields"))?
+                    .split(',');
                 let (line_number, line_hits) = (split.next(), split.next()); // ignore checksum
                 if let (Some(number), Some(hits)) = (line_number, line_hits) {
-                    let line_number: usize = number.parse().unwrap();
+                    let line_number: usize = number.parse()?;
                     let line_hits = hits.parse::<usize>().unwrap_or(0);
                     cov_data.update_line_hits(
                         &package_name,
@@ -358,11 +369,10 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                     }
                     cov_data.inc_lines_total();
                 }
-                //eprintln!("{:?}", line)
             }
             Some("BRDA") => {
                 if let [line_number, _block_number, _branch_number, branch_hits] = line
-                    .unwrap()
+                    .ok_or_else(|| anyhow::anyhow!("BRDA entry has no fields"))?
                     .splitn(4, ',')
                     .map(|v| v.parse::<usize>().unwrap_or(0))
                     .collect::<Vec<usize>>()
@@ -377,16 +387,24 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                 }
             }
             Some("BRF") => {
-                cov_data.cdsummary.branches_total += line.unwrap().parse::<usize>().unwrap_or(0);
+                cov_data.cdsummary.branches_total += line
+                    .ok_or_else(|| anyhow::anyhow!("BRF without value"))?
+                    .parse::<usize>()
+                    .unwrap_or(0);
             }
             Some("BRH") => {
-                cov_data.cdsummary.branches_covered += line.unwrap().parse::<usize>().unwrap_or(0);
+                cov_data.cdsummary.branches_covered += line
+                    .ok_or_else(|| anyhow::anyhow!("BRH without value"))?
+                    .parse::<usize>()
+                    .unwrap_or(0);
             }
             Some("FN") => {
-                let mut split = line.unwrap().splitn(2, ',');
+                let mut split = line
+                    .ok_or_else(|| anyhow::anyhow!("FN without fields"))?
+                    .splitn(2, ',');
                 let (function_line, function_name) = (split.next(), split.last());
-                if let Some(function_name) = function_name {
-                    let function_line: usize = function_line.unwrap().parse().unwrap();
+                if let (Some(function_line), Some(function_name)) = (function_line, function_name) {
+                    let function_line: usize = function_line.parse()?;
                     cov_data.insert_method(
                         &package_name,
                         &relative_file_name,
@@ -396,10 +414,12 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                 }
             }
             Some("FNDA") => {
-                let mut split = line.unwrap().splitn(2, ',');
+                let mut split = line
+                    .ok_or_else(|| anyhow::anyhow!("FNDA without fields"))?
+                    .splitn(2, ',');
                 let (function_hits, function_name) = (split.next(), split.last());
-                if let Some(function_name) = function_name {
-                    let function_hits: usize = function_hits.unwrap().parse().unwrap();
+                if let (Some(function_hits), Some(function_name)) = (function_hits, function_name) {
+                    let function_hits: usize = function_hits.parse()?;
                     cov_data.update_method_hits(
                         &package_name,
                         &relative_file_name,
@@ -415,16 +435,15 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
             Some("LH") => (),  // FIXME  in real world data
             Some("TN") => (),  // is in tests input, does nothing?
             Some("") => (),    // empty line, skip
-            Some(it) => panic!("unknown type{:?}", it),
-            None => panic!("no input type for this line"),
+            Some(it) => anyhow::bail!("unknown type{:?}", it),
+            None => anyhow::bail!("no input type for this line"),
         }
     }
     // remove unwanted packages
     let mut to_remove = vec![];
-    let excludes: Vec<regex::Regex> = excludes
-        .iter()
-        .map(|v| regex::Regex::new(v).unwrap())
-        .collect();
+    let excludes: Result<Vec<regex::Regex>, _> =
+        excludes.iter().map(|v| regex::Regex::new(v)).collect();
+    let excludes = excludes?;
     for pkg_key in cov_data.packages.keys() {
         for re in &excludes {
             if re.is_match(pkg_key) {
@@ -536,6 +555,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
             line_keys.sort();
             for line_number in &line_keys {
                 // safety: guaranteed, using sorted keys as input
+                #[allow(clippy::unwrap_used)]
                 let cd_line = cd.lines.get(line_number).unwrap();
                 let branch = cd_line.branch.to_string();
                 let hits = cd_line.hits.to_string();

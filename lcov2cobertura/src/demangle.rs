@@ -23,6 +23,8 @@ pub struct CppDemangler {
 
 impl CppDemangler {
     /// pass in full path to command that does the demangling
+    // safety: stdin/stdout is only taken once, panic unlikely
+    #[allow(clippy::unwrap_used)]
     pub fn new(cmd: &str) -> io::Result<Self> {
         let mut child = Command::new(cmd)
             .stdin(Stdio::piped())
@@ -65,6 +67,8 @@ impl Default for RustDemangler {
 
 impl RustDemangler {
     /// creates the Regex instance needed for later demangling
+    // safety: regex is known to compile fine, no panic
+    #[allow(clippy::unwrap_used)]
     pub fn new() -> Self {
         Self {
             disambiguator: Regex::new(r"\[[0-9a-f]{5,16}\]::").unwrap(),

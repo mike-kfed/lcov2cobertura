@@ -31,10 +31,10 @@ struct Args {
     demangler: String,
 }
 
-fn now() -> u64 {
+fn now() -> anyhow::Result<u64> {
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+        Ok(n) => Ok(n.as_secs()),
+        Err(_) => anyhow::bail!("SystemTime before UNIX EPOCH!"),
     }
 }
 
@@ -63,7 +63,11 @@ fn main() -> anyhow::Result<()> {
             excludes.clone(),
         )?
     } else {
-        let filename = args.files.get(0).unwrap().to_path_buf();
+        let filename = args
+            .files
+            .get(0)
+            .ok_or_else(|| anyhow::anyhow!("no filename given"))?
+            .to_path_buf();
         lcov2xml::parse_fn(
             filename.as_path(),
             args.base_dir.as_path(),
@@ -76,14 +80,14 @@ fn main() -> anyhow::Result<()> {
     if args.demangle {
         if args.demangler == "$rust" {
             let demangler = lcov2xml::RustDemangler::new();
-            lcov2xml::coverage_to_file(&args.output, &result, now(), demangler)?;
+            lcov2xml::coverage_to_file(&args.output, &result, now()?, demangler)?;
         } else {
             let demangler = lcov2xml::CppDemangler::new(&args.demangler)?;
-            lcov2xml::coverage_to_file(&args.output, &result, now(), demangler)?;
+            lcov2xml::coverage_to_file(&args.output, &result, now()?, demangler)?;
         }
     } else {
         let demangler = lcov2xml::NullDemangler::new();
-        lcov2xml::coverage_to_file(&args.output, &result, now(), demangler)?;
+        lcov2xml::coverage_to_file(&args.output, &result, now()?, demangler)?;
     };
     Ok(())
 }

@@ -1,3 +1,5 @@
+// safety: if tests panic we see it on CI
+#![allow(clippy::unwrap_used)]
 #[cfg(test)]
 use super::*;
 

@@ -1,13 +1,14 @@
 //! Interface and implemtation of different demanglers
 use regex::Regex;
 use rustc_demangle::demangle;
+use std::borrow::Cow;
 use std::io::{self, BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
 /// Basic interface to demangle function/method names
-pub trait Demangler {
+pub trait Demangler<'a, 'b> {
     /// demangles an identifier
-    fn demangle(&mut self, ident: &str) -> io::Result<String>;
+    fn demangle(&'b mut self, ident: &'a str) -> io::Result<Cow<'a, str>>;
     /// consumes the instance closing opened resources
     fn stop(self) -> io::Result<()>;
 }
@@ -40,12 +41,12 @@ impl CppDemangler {
     }
 }
 
-impl Demangler for CppDemangler {
-    fn demangle(&mut self, ident: &str) -> io::Result<String> {
+impl<'a, 'b> Demangler<'a, 'b> for CppDemangler {
+    fn demangle(&mut self, ident: &str) -> io::Result<Cow<'a, str>> {
         self.child_in.write_all(format!("{}\n", ident).as_bytes())?;
         let mut line = String::new();
         self.child_out.read_line(&mut line)?;
-        Ok(line.trim().to_string())
+        Ok(Cow::Owned(line.trim().into()))
     }
 
     fn stop(mut self) -> io::Result<()> {
@@ -75,10 +76,12 @@ impl RustDemangler {
         }
     }
 }
-impl Demangler for RustDemangler {
-    fn demangle(&mut self, ident: &str) -> io::Result<String> {
+impl<'a, 'b> Demangler<'a, 'b> for RustDemangler {
+    fn demangle(&mut self, ident: &str) -> io::Result<Cow<'a, str>> {
         let demangled = demangle(ident).to_string();
-        Ok(self.disambiguator.replace_all(&demangled, "::").to_string())
+        Ok(Cow::Owned(
+            self.disambiguator.replace_all(&demangled, "::").to_string(),
+        ))
     }
 
     fn stop(self) -> io::Result<()> {
@@ -100,9 +103,9 @@ impl NullDemangler {
         Self {}
     }
 }
-impl Demangler for NullDemangler {
-    fn demangle(&mut self, ident: &str) -> io::Result<String> {
-        Ok(ident.to_string())
+impl<'a, 'b> Demangler<'a, 'b> for NullDemangler {
+    fn demangle(&'b mut self, ident: &'a str) -> io::Result<Cow<'a, str>> {
+        Ok(Cow::Borrowed(ident))
     }
 
     fn stop(self) -> io::Result<()> {

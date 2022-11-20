@@ -456,7 +456,7 @@ macro_rules! s {
 }
 
 /// dumps cobertura XML into given Writer object
-pub fn dump_xml<D: Demangler, W: Write>(
+pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
     writer: W,
     cov_data: &CoverageData,
     timestamp: u64,
@@ -515,7 +515,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
                 let mut method = BytesStart::new("method");
                 let line_rate = if *hits > 0 { 1. } else { 0. };
                 let branch_rate = if *hits > 0 { 1. } else { 0. };
-                method.push_attribute(("name", demangler.demangle(method_name.as_str())?.as_str()));
+                method.push_attribute(("name", demangler.demangle(method_name.as_str())?.as_ref()));
                 method.push_attribute(("signature", ""));
                 method.push_attribute(("complexity", "0"));
                 method.push_attribute(("line-rate", s!(line_rate)));
@@ -589,7 +589,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
 }
 
 /// convenience function to convert coverage data into a XML String
-pub fn coverage_to_string<D: Demangler>(
+pub fn coverage_to_string<D: for<'a> Demangler<'a, 'a>>(
     cov_data: &CoverageData,
     timestamp: u64,
     demangler: D,
@@ -604,7 +604,7 @@ pub fn coverage_to_string<D: Demangler>(
 }
 
 /// convenience function to write coverage data to a XML file
-pub fn coverage_to_file<P: AsRef<Path>, D: Demangler>(
+pub fn coverage_to_file<P: AsRef<Path>, D: for<'a> Demangler<'a, 'a>>(
     filename: P,
     cov_data: &CoverageData,
     timestamp: u64,

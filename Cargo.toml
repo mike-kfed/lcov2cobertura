@@ -1,12 +1,13 @@
 [package]
 name = "lcov2xml"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
-license-file = "LICENSE"
+license = "Apache-2.0"
 description = "convert LCOV info file to cobertura XML format"
 repository = "https://github.com/mike-kfed/lcov2cobertura"
 keywords = ["coverage", "gitlab", "cobertura", "lcov"]
 categories = ["command-line-utilities"]
+rust-version = "1.59"
 
 [workspace]
 
@@ -15,3 +16,6 @@ anyhow = "1.0.66"
 clap = { version = "4.0", features = ["derive"]}
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura" }
+
+[profile.release]
+strip = "symbols"

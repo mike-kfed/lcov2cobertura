@@ -8,14 +8,13 @@ use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 use quick_xml::writer::Writer;
 
+const MAX_SIZE: usize = 9_500_000; // use below 10MB to be on the safe side
+
 /// Algorithm:
 /// - read from XML file using streaming parser
 /// - write to temporary bytes buffer until packages tag is closed
 /// - verify that buffer appended to existing outfile does not surpass desired size
 /// - if surpassed, write and close current file then start new file with buffer contents
-
-const MAX_SIZE: usize = 9_500_000; // use below 10MB to be on the safe side
-
 pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
     let source_fn = std::path::PathBuf::from(filename.as_ref());
     let mut file_no = 1;

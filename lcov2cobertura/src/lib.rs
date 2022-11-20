@@ -6,9 +6,11 @@ use std::path::Path;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::writer::Writer;
 
+mod cobertura_split;
 mod demangle;
 mod tests;
 
+pub use cobertura_split::corbertura_xml_split;
 pub use demangle::{CppDemangler, Demangler, NullDemangler, RustDemangler};
 
 fn percent(a: usize, b: usize) -> f64 {
@@ -49,17 +51,6 @@ impl std::ops::Add for Summary {
         }
     }
 }
-
-/*
-impl<'a> std::iter::Sum<&'a Self> for Summary {
-    fn sum<I>(iter: I) -> Self
-    where
-        I: Iterator<Item = &'a Self>,
-    {
-        iter.fold(Self::default(), |a, b| a + *b)
-    }
-}
-*/
 
 impl std::iter::Sum<Self> for Summary {
     fn sum<I>(iter: I) -> Self
@@ -593,7 +584,7 @@ pub fn dump_xml<D: Demangler, W: Write>(
 
     // close coverage
     writer.write_event(Event::End(BytesEnd::new("coverage")))?;
-    //let result = writer.into_inner().into_inner();
+
     Ok(writer.into_inner())
 }
 

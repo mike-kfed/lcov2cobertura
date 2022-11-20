@@ -183,16 +183,27 @@ impl CoverageData {
         line_number: usize,
         line_hits: usize,
     ) {
-        self.packages
+        // avoid allocation if entry exists
+        if let Some(class) = self
+            .packages
             .get_mut(package_name)
             .unwrap()
             .classes
-            .entry(relative_file_name.to_owned()) // FIXME: avoid allocation
-            .or_insert_with(|| Class::from_fn(relative_file_name))
-            .lines
-            .entry(line_number)
-            .or_default()
-            .hits = line_hits;
+            .get_mut(relative_file_name)
+        {
+            class.lines.entry(line_number).or_default().hits = line_hits;
+        } else {
+            self.packages
+                .get_mut(package_name)
+                .unwrap()
+                .classes
+                .entry(relative_file_name.to_owned())
+                .or_insert_with(|| Class::from_fn(relative_file_name))
+                .lines
+                .entry(line_number)
+                .or_default()
+                .hits = line_hits;
+        }
     }
 
     fn inc_branches(

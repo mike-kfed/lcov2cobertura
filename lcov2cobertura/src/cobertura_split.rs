@@ -12,7 +12,7 @@ const MAX_SIZE: usize = 9_500_000; // use below 10MB to be on the safe side
 
 /// Algorithm:
 /// - read from XML file using streaming parser
-/// - write to temporary bytes buffer until packages tag is closed
+/// - write to temporary bytes buffer until package tag is closed
 /// - verify that buffer appended to existing outfile does not surpass desired size
 /// - if surpassed, write and close current file then start new file with buffer contents
 pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
@@ -47,13 +47,11 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                 Ok(e) => {
                     let write_event = match &e {
                         Event::Start(e) => {
-                            let pos = writer.inner().get_ref().len();
-                            if e.name().as_ref() == b"packages" {
+                            if e.name().as_ref() == b"package" {
                                 // write coverage/sources "header" to buffer for later use
                                 if coverage_head.is_empty() {
                                     coverage_head.extend_from_slice(writer.inner().get_ref());
                                 }
-                                println!("STARTED {}", pos);
                             }
                             true
                         }
@@ -69,18 +67,18 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 outfile.write_all(xml_buf)?;
                                 Ok(())
                             };
-                            if e.name().as_ref() == b"packages" {
+                            if e.name().as_ref() == b"package" {
                                 // important close outer tags
-                                writer.write_event(Event::End(BytesEnd::new("packages")))?;
+                                writer.write_event(Event::End(BytesEnd::new("package")))?;
                                 let pos = writer.inner().get_ref().len();
-                                println!("ENDED {}", pos);
+                                //println!("ENDED {}", pos);
                                 if xml_buf.len() + pos < MAX_SIZE {
                                     xml_buf.extend_from_slice(writer.inner().get_ref());
                                     writer =
                                         Writer::new_with_indent(Cursor::new(Vec::new()), b' ', 4);
                                 } else {
                                     // too big, write out current buffer
-                                    xml_buf.extend_from_slice(b"\n</coverage>");
+                                    xml_buf.extend_from_slice(b"\n    </packages>\n</coverage>");
                                     write_file(&xml_buf)?;
                                     xml_buf.clear();
                                     xml_buf.extend_from_slice(writer.inner().get_ref());
@@ -94,7 +92,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 false
                             } else if e.name().as_ref() == b"coverage" {
                                 // XML finished write out current buffer
-                                xml_buf.extend_from_slice(b"\n</coverage>");
+                                xml_buf.extend_from_slice(b"\n    </packages>\n</coverage>");
                                 write_file(&xml_buf)?;
                                 xml_buf.clear(); // not really needed but why not
                                 false

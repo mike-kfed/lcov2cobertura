@@ -29,6 +29,9 @@ struct Args {
     /// Path to demangler tool, e.g. c++filt for C++, $rust = internal rustc demangler
     #[clap(long, default_value = "$rust")]
     demangler: String,
+    /// splits XML file into 9.5MB big chunks for GitLab, attention keeps original file intact
+    #[clap(long)]
+    split_xml: bool,
 }
 
 fn now() -> anyhow::Result<u64> {
@@ -85,5 +88,9 @@ fn main() -> anyhow::Result<()> {
         let demangler = lcov2xml::NullDemangler::new();
         lcov2xml::coverage_to_file(&args.output, &result, now()?, demangler)?;
     };
+
+    if args.split_xml {
+        lcov2xml::corbertura_xml_split(&args.output)?;
+    }
     Ok(())
 }

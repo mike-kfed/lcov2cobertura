@@ -29,7 +29,7 @@ convert LCOV info file to cobertura XML format
 Usage: lcov2xml [OPTIONS] [FILES]...
 
 Arguments:
-  [FILES]...  LCOV input files, when not given reads from stdin
+  [FILES]...  LCOV input files, use single dash '-' argument to read from stdin
 
 Options:
   -b, --base-dir <BASE_DIR>    Directory where source files are located [default: .]

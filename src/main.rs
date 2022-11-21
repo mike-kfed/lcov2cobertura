@@ -1,7 +1,7 @@
 //! executable to run the conversion
 
 use clap::Parser;
-use std::io::BufRead;
+use std::io::{BufRead, Read};
 use std::path::PathBuf;
 use std::time::SystemTime;
 
@@ -11,7 +11,7 @@ use lcov2cobertura as lcov2xml;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// LCOV input files, when not given reads from stdin
+    /// LCOV input files, use single dash '-' argument to read from stdin
     #[clap()]
     files: Vec<PathBuf>,
     /// Directory where source files are located
@@ -65,6 +65,12 @@ fn main() -> anyhow::Result<()> {
             args.base_dir.as_path(),
             &excludes,
         )?
+    } else if args.files.get(0) == Some(&PathBuf::from("-")) {
+        let mut input = Vec::new();
+        let stdin = std::io::stdin();
+        let mut handle = stdin.lock();
+        handle.read_to_end(&mut input)?;
+        lcov2xml::parse_lines(input.lines(), args.base_dir.as_path(), &excludes)?
     } else {
         let filename = args
             .files

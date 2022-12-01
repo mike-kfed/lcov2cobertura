@@ -45,24 +45,26 @@ Options:
 ## Performance
 
 Ran on a about 500KiB sized lcov.info file on macOS and measured the wall-clock time plus max RAM usage.
-Does not seem to be much faster in gross runtime but uses an order of magnitude less RAM.
+Is faster in gross runtime but more importantly uses an order of magnitude less RAM.
 
-For the coverage.xml splitting tool input is a 100MB sized xml file. RAM usage is drastically reduced.
+For the coverage.xml splitting tool input is a 100MB sized xml file. RAM usage is drastically reduced, so is runtime.
+
+All times are measured after some warm-up runs to fill the disk cache.
 
 ```bash
 /usr/bin/time -al python3 lcov_cobertura.py lcov.info
-/usr/bin/time -al cargo run --release --bin lcov2xml -- lcov.info
+/usr/bin/time -al target/release/lcov2xml lcov.info
 
 /usr/bin/time -al python3 split-by-package-int.py huge.xml outdir
-/usr/bin/time -al cargo run --release --bin cobertura_split -- huge.xml
+/usr/bin/time -al target/release/cobertura_split huge.xml
 ```
 
 |            | Python 3.10                  | Rust 1.65              |
 | ---------- | ---------------------------- | ---------------------- |
 | what       | lcov-to-cobertura-xml v2.0.2 | lcov2cobertura v1.0.0  |
-| runtime    | 0.38secs                     | 0.32sec                |
+| runtime    | 0.35secs                     | 0.17sec                |
 | memory     | 64MiB                        | 3MiB                   |
 | _splitter_ |                              |                        |
 | what       | split-by-package-int         | cobertura_split v1.0.2 |
-| runtime    | 2.38secs                     | 0.32sec                |
+| runtime    | 2.32secs                     | 0.19sec                |
 | memory     | 2GiB                         | 13MiB                  |

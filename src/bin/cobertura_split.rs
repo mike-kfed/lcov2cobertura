@@ -16,6 +16,6 @@ struct Args {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    lcov2xml::corbertura_xml_split(&args.filename)?;
+    lcov2xml::corbertura_xml_split(args.filename)?;
     Ok(())
 }

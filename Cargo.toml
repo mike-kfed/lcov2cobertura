@@ -17,5 +17,8 @@ clap = { version = "4.0", features = ["derive"]}
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura" }
 
+[dev-dependencies]
+quick-xml = "0.30.0"
+
 [profile.release]
 strip = "symbols"

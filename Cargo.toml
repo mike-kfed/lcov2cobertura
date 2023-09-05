@@ -12,8 +12,8 @@ rust-version = "1.59"
 [workspace]
 
 [dependencies]
-anyhow = "1.0.66"
-clap = { version = "4.0", features = ["derive"]}
+anyhow = "1.0.75"
+clap = { version = "4.4", features = ["derive"]}
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.2" }
 

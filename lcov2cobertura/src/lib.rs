@@ -80,7 +80,7 @@ impl Package {
 
 impl CompSummary for Package {
     fn summary(&self) -> Summary {
-        let lines_total = self.classes.values().map(|c| c.lines.len() as usize).sum();
+        let lines_total = self.classes.values().map(|c| c.lines.len()).sum();
         let lines_covered = self.classes.values().map(|c| c.lines_covered).sum();
         let branches_total = self
             .classes
@@ -128,7 +128,7 @@ impl Class {
 
 impl CompSummary for Class {
     fn summary(&self) -> Summary {
-        let lines_total = self.lines.len() as usize;
+        let lines_total = self.lines.len();
         let lines_covered = self.lines_covered;
         let branches_total = self.lines.values().map(|b| b.branches_total).sum::<usize>();
         let branches_covered = self

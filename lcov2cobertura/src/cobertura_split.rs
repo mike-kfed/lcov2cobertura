@@ -50,7 +50,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                             if e.name().as_ref() == b"package" {
                                 // write coverage/sources "header" to buffer for later use
                                 if coverage_head.is_empty() {
-                                    coverage_head.extend_from_slice(writer.inner().get_ref());
+                                    coverage_head.extend_from_slice(writer.get_ref().get_ref());
                                 }
                             }
                             true
@@ -70,10 +70,10 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                             if e.name().as_ref() == b"package" {
                                 // important close outer tags
                                 writer.write_event(Event::End(BytesEnd::new("package")))?;
-                                let pos = writer.inner().get_ref().len();
+                                let pos = writer.get_ref().get_ref().len();
                                 //println!("ENDED {}", pos);
                                 if xml_buf.len() + pos < MAX_SIZE {
-                                    xml_buf.extend_from_slice(writer.inner().get_ref());
+                                    xml_buf.extend_from_slice(writer.get_ref().get_ref());
                                     writer =
                                         Writer::new_with_indent(Cursor::new(Vec::new()), b' ', 4);
                                 } else {
@@ -81,7 +81,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                     xml_buf.extend_from_slice(b"\n    </packages>\n</coverage>");
                                     write_file(&xml_buf)?;
                                     xml_buf.clear();
-                                    xml_buf.extend_from_slice(writer.inner().get_ref());
+                                    xml_buf.extend_from_slice(writer.get_ref().get_ref());
                                     writer =
                                         Writer::new_with_indent(Cursor::new(Vec::new()), b' ', 4);
                                     file_no += 1;

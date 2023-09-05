@@ -10,7 +10,7 @@ rust-version = "1.59"
 
 [dependencies]
 anyhow = "1.0.66"
-quick-xml = "0.26.0"
+quick-xml = "0.30.0"
 regex = "1.7.0"
 rustc-demangle = "0.1.21"
 

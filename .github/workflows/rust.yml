@@ -19,7 +19,7 @@ jobs:
     - name: formatting
       run: cargo fmt --all -- --check
     - name: quality
-      run: cargo clippy --workspace --bins --examples --tests --no-deps -- $CLIPPY_FLAGS
+      run: cargo clippy --workspace --bins --examples --tests --no-deps
     - name: Build
       run: cargo check --workspace --bins --examples --tests
     - name: Run tests

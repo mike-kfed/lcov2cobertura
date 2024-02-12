@@ -18,7 +18,7 @@ lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.2" }
 
 [dev-dependencies]
-quick-xml = "0.30.0"
+quick-xml = "0.31.0"
 
 [profile.release]
 strip = "symbols"

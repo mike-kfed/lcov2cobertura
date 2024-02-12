@@ -65,7 +65,7 @@ fn main() -> anyhow::Result<()> {
             args.base_dir.as_path(),
             &excludes,
         )?
-    } else if args.files.get(0) == Some(&PathBuf::from("-")) {
+    } else if args.files.first() == Some(&PathBuf::from("-")) {
         let mut input = Vec::new();
         let stdin = std::io::stdin();
         let mut handle = stdin.lock();
@@ -74,7 +74,7 @@ fn main() -> anyhow::Result<()> {
     } else {
         let filename = args
             .files
-            .get(0)
+            .first()
             .ok_or_else(|| anyhow::anyhow!("no filename given"))?
             .to_path_buf();
         lcov2xml::parse_file(filename.as_path(), args.base_dir.as_path(), &excludes)?

@@ -9,7 +9,7 @@ keywords = ["coverage", "gitlab", "cobertura", "lcov"]
 rust-version = "1.59"
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.79"
 quick-xml = "0.31.0"
 regex = "1.7.3"
 rustc-demangle = "0.1.23"

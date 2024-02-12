@@ -348,7 +348,7 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                 cov_data
                     .packages
                     .entry(package_name.clone())
-                    .or_insert_with(Package::default)
+                    .or_default()
                     .insert_class(&relative_file_name);
             }
             Some("DA") => {

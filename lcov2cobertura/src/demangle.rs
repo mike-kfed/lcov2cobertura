@@ -25,7 +25,7 @@ pub struct CppDemangler {
 impl CppDemangler {
     /// pass in full path to command that does the demangling
     // safety: stdin/stdout is only taken once, panic unlikely
-    #[allow(clippy::unwrap_used)]
+    #[allow(clippy::unwrap_used, clippy::unwrap_in_result)]
     pub fn new(cmd: &str) -> io::Result<Self> {
         let mut child = Command::new(cmd)
             .stdin(Stdio::piped())

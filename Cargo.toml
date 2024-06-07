@@ -1,6 +1,6 @@
 [package]
 name = "lcov2xml"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2021"
 license = "Apache-2.0"
 description = "convert LCOV info file to cobertura XML format"
@@ -12,7 +12,7 @@ rust-version = "1.59"
 [workspace]
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.86"
 clap = { version = "4.4", features = ["derive"]}
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.2" }
@@ -35,7 +35,6 @@ deprecated-cfg-attr-crate-type-name = "forbid"
 deref-into-dyn-supertrait = "forbid" 
 forbidden-lint-groups = "allow" 
 ill-formed-attribute-input = "forbid" 
-illegal-floating-point-literal-pattern = "forbid" 
 indirect-structural-match = "forbid" 
 invalid-doc-attributes = "forbid" 
 invalid-type-param-default = "forbid" 
@@ -43,7 +42,6 @@ late-bound-lifetime-arguments = "forbid"
 legacy-derive-helpers = "forbid" 
 macro-expanded-macro-exports-accessed-by-absolute-paths = "forbid" 
 missing-fragment-specifier = "forbid" 
-nontrivial-structural-match = "forbid" 
 order-dependent-trait-objects = "forbid" 
 patterns-in-fns-without-body = "forbid" 
 pointer-structural-match = "forbid" 

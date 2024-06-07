@@ -1,6 +1,6 @@
 [package]
 name = "lcov2cobertura"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2021"
 license = "Apache-2.0"
 description = "convert LCOV info file to cobertura XML format"
@@ -9,10 +9,10 @@ keywords = ["coverage", "gitlab", "cobertura", "lcov"]
 rust-version = "1.59"
 
 [dependencies]
-anyhow = "1.0.79"
+anyhow = "1.0.86"
 quick-xml = "0.31.0"
 regex = "1.7.3"
-rustc-demangle = "0.1.23"
+rustc-demangle = "0.1.24"
 
 [lib]
 name = "lcov2cobertura"
@@ -29,7 +29,6 @@ deprecated-cfg-attr-crate-type-name = "forbid"
 deref-into-dyn-supertrait = "forbid" 
 forbidden-lint-groups = "allow" 
 ill-formed-attribute-input = "forbid" 
-illegal-floating-point-literal-pattern = "forbid" 
 indirect-structural-match = "forbid" 
 invalid-doc-attributes = "forbid" 
 invalid-type-param-default = "forbid" 
@@ -37,7 +36,6 @@ late-bound-lifetime-arguments = "forbid"
 legacy-derive-helpers = "forbid" 
 macro-expanded-macro-exports-accessed-by-absolute-paths = "forbid" 
 missing-fragment-specifier = "forbid" 
-nontrivial-structural-match = "forbid" 
 order-dependent-trait-objects = "forbid" 
 patterns-in-fns-without-body = "forbid" 
 pointer-structural-match = "forbid" 

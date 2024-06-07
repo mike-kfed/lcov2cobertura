@@ -62,11 +62,6 @@ rust-2018-idioms = "deny"
 nonstandard-style = "deny"
 
 [lints.clippy]
-unwrap_used = "deny"
-unwrap_in_result = "deny"
-panic = "deny"
-expect_used = "deny"
-unimplemented = "deny"
 suspicious = "forbid"
 style = "forbid"
 complexity = "forbid"

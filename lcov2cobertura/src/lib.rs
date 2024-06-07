@@ -326,6 +326,8 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
         let mut split = line.splitn(2, ':');
         let (input_type, line) = (split.next(), split.last());
 
+        // proposed improvement only works in rustc 1.63 and above
+        #[allow(clippy::assigning_clones)]
         match input_type {
             Some("SF") => {
                 let file_name = line.ok_or_else(|| anyhow::anyhow!("SF entry has no filename"))?;

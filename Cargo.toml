@@ -1,6 +1,6 @@
 [package]
 name = "lcov2xml"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 license = "Apache-2.0"
 description = "convert LCOV info file to cobertura XML format"

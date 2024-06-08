@@ -7,7 +7,7 @@ description = "convert LCOV info file to cobertura XML format"
 repository = "https://github.com/mike-kfed/lcov2cobertura"
 keywords = ["coverage", "gitlab", "cobertura", "lcov"]
 categories = ["command-line-utilities"]
-rust-version = "1.59"
+rust-version = "1.73"
 
 [workspace]
 

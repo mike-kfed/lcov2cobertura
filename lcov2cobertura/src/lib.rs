@@ -326,8 +326,6 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
         let mut split = line.splitn(2, ':');
         let (input_type, line) = (split.next(), split.last());
 
-        // proposed improvement only works in rustc 1.63 and above
-        #[allow(clippy::assigning_clones)]
         match input_type {
             Some("SF") => {
                 let file_name = line.ok_or_else(|| anyhow::anyhow!("SF entry has no filename"))?;
@@ -335,14 +333,14 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                 // TODO: was `relative_file_name = os.path.relpath(file_name, self.base_dir)`
                 // does not do the same as strip_prefix, but I am fairly certain it was the idea
                 // TODO: proper unwrap error handling
-                relative_file_name = file_path
+                file_path
                     .strip_prefix(base_dir)
                     .unwrap_or(file_path)
                     .to_str()
                     .ok_or_else(|| {
                         anyhow::anyhow!("relative_file_name cannot be converted to string")
                     })?
-                    .to_owned();
+                    .clone_into(&mut relative_file_name);
                 let elems = relative_file_name
                     .split(std::path::MAIN_SEPARATOR)
                     .collect::<Vec<&str>>();

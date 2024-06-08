@@ -202,7 +202,7 @@ fn test_demangle_rust() {
             <classes>
                 <class branch-rate="0" complexity="0" filename="foo/foo.cpp" line-rate="1" name="foo.foo.cpp">
                     <methods>
-                        <method name="foo[0]" signature="" complexity="0" line-rate="1" branch-rate="1">
+                        <method name="foo" signature="" complexity="0" line-rate="1" branch-rate="1">
                             <lines>
                                 <line hits="1" number="8" branch="false"/>
                             </lines>
@@ -212,7 +212,7 @@ fn test_demangle_rust() {
                                 <line hits="1" number="0" branch="false"/>
                             </lines>
                         </method>
-                        <method name="123foo[0]::bar" signature="" complexity="0" line-rate="0" branch-rate="0">
+                        <method name="123foo::bar" signature="" complexity="0" line-rate="0" branch-rate="0">
                             <lines>
                                 <line hits="0" number="3" branch="false"/>
                             </lines>

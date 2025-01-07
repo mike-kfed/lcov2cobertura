@@ -1,8 +1,8 @@
 # lcov2cobertura
 
-converts lcov info files to cobertura XML
+Library for converting lcov info files to cobertura XML format.
 
-Idea is for this to be a library for [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) but also a more performant standalone application replacing the Python based [lcov-to-cobertura-xml](https://github.com/eriwen/lcov-to-cobertura-xml)
+Main intention to be a library for [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov). There is also a more performant standalone application replacing the Python based [lcov-to-cobertura-xml](https://github.com/eriwen/lcov-to-cobertura-xml) see [lcov2xml](https://crates.io/crates/lcov2xml).
 
 ## Features
 

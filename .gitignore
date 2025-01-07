@@ -11,3 +11,4 @@ Cargo.lock
 
 *.xml
 /outdir/
+/cobertura_examples/

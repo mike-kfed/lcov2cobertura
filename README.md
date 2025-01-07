@@ -1,8 +1,12 @@
-# lcov2cobertura
+# lcov2xml
 
-converts lcov info files to cobertura XML
+Executable to convert lcov info files to cobertura XML format.
 
-Idea is for this to be a library for [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) but also a more performant standalone application replacing the Python based [lcov-to-cobertura-xml](https://github.com/eriwen/lcov-to-cobertura-xml)
+A more performant standalone application replacing the Python based [lcov-to-cobertura-xml](https://github.com/eriwen/lcov-to-cobertura-xml)
+
+Contains two tools to help with CI/CD coverage, especially for GitLab. `lcov2xml` to convert and if needed `cobertura_split` to chunk them into allowed sizes for GitLab artifacts.
+
+You can avoid installing those tools, because conversion functionality is also integrated in [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) which might already covers your needs.
 
 ## Features
 
@@ -14,6 +18,9 @@ Idea is for this to be a library for [cargo-llvm-cov](https://github.com/taiki-e
 ## Usage
 
 ```bash
+# install using cargo
+cargo install lcov2xml
+# inspect usage
 lcov2xml --help
 # this would write file coverage.xml
 lcov2xml lcov.info

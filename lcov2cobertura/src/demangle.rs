@@ -41,7 +41,7 @@ impl CppDemangler {
     }
 }
 
-impl<'a, 'b> Demangler<'a, 'b> for CppDemangler {
+impl<'a> Demangler<'a, '_> for CppDemangler {
     fn demangle(&mut self, ident: &str) -> io::Result<Cow<'a, str>> {
         self.child_in.write_all(format!("{}\n", ident).as_bytes())?;
         let mut line = String::new();
@@ -76,7 +76,7 @@ impl RustDemangler {
         }
     }
 }
-impl<'a, 'b> Demangler<'a, 'b> for RustDemangler {
+impl<'a> Demangler<'a, '_> for RustDemangler {
     fn demangle(&mut self, ident: &str) -> io::Result<Cow<'a, str>> {
         let demangled = demangle(ident).to_string();
         Ok(Cow::Owned(

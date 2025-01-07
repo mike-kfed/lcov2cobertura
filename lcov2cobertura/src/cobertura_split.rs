@@ -20,7 +20,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
     let mut file_no = 1;
     let mut file_size = 0;
     let mut reader = Reader::from_file(filename)?;
-    reader.trim_text(true); // should be fine for corbetura files
+    reader.config_mut().trim_text(true); // should be fine for cobertura files
     loop {
         let mut target_fn = source_fn.clone();
         let target_stem = target_fn

@@ -12,13 +12,13 @@ rust-version = "1.73"
 [workspace]
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0.95"
 clap = { version = "4.4", features = ["derive"]}
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.2" }
 
 [dev-dependencies]
-quick-xml = "0.31.0"
+quick-xml = "0.37.2"
 
 [profile.release]
 strip = "symbols"

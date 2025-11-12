@@ -7,17 +7,17 @@ use std::time::SystemTime;
 
 use lcov2cobertura as lcov2xml;
 
-/// Cmd line arguments
+/// Command line arguments
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// LCOV input files, use single dash '-' argument to read from stdin
+    /// LCOV input files, use single dash '-' argument to read from standard input
     #[clap()]
     files: Vec<PathBuf>,
     /// Directory where source files are located
     #[clap(short, long, default_value = ".")]
     base_dir: PathBuf,
-    /// Path to store cobertura xml file
+    /// Path to store cobertura XML file
     #[clap(short, long, default_value = "coverage.xml")]
     output: PathBuf,
     /// Comma-separated list of regexes of packages to exclude
@@ -26,10 +26,10 @@ struct Args {
     /// Demangle function names
     #[clap(short, long)]
     demangle: bool,
-    /// Path to demangler tool, e.g. c++filt for C++, $rust = internal rustc demangler
+    /// Path to demangler tool, e.g. `c++filt` for C++, `$rust` = internal rustc demangler
     #[clap(long, default_value = "$rust")]
     demangler: String,
-    /// splits XML file into 9.5MB big chunks for GitLab, attention keeps original file intact
+    /// Splits XML file into 9.5 megabytes big chunks for GitLab, attention keeps original file intact
     #[clap(long)]
     split_xml: bool,
 }
@@ -45,7 +45,7 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let excludes: Vec<&str> = args.excludes.split(',').filter(|v| !v.is_empty()).collect();
     let result = if args.files.len() > 1 {
-        // merge into memory and pass to lineparser
+        // Merge into memory and pass to line-parser
         let mut report = lcov::Report::new();
 
         let mut totalsize = 0;
@@ -54,7 +54,7 @@ fn main() -> anyhow::Result<()> {
             report.merge(lcov::Report::from_file(filename)?)?;
         }
 
-        let mut merged = String::with_capacity(totalsize as usize);
+        let mut merged = String::with_capacity(usize::try_from(totalsize)?);
         for record in report.into_records() {
             merged.push_str(&record.to_string());
             merged.push('\n');
@@ -75,12 +75,11 @@ fn main() -> anyhow::Result<()> {
         let filename = args
             .files
             .first()
-            .ok_or_else(|| anyhow::anyhow!("no filename given"))?
-            .to_path_buf();
+            .ok_or_else(|| anyhow::anyhow!("no filename given"))?;
         lcov2xml::parse_file(filename.as_path(), args.base_dir.as_path(), &excludes)?
     };
 
-    // this is done repetitively to avoid dynamic dispatching. when a fourth demangler is added
+    // This is done repetitively to avoid dynamic dispatching. When a fourth demangler is added
     // implement enum dispatching ;)
     if args.demangle {
         if args.demangler == "$rust" {
@@ -93,7 +92,7 @@ fn main() -> anyhow::Result<()> {
     } else {
         let demangler = lcov2xml::NullDemangler::new();
         lcov2xml::coverage_to_file(&args.output, &result, now()?, demangler)?;
-    };
+    }
 
     if args.split_xml {
         lcov2xml::corbertura_xml_split(&args.output)?;

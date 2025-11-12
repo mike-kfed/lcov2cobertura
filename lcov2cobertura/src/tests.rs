@@ -1,10 +1,10 @@
-// safety: if tests panic we see it on CI
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, reason = "if tests panic we see it on CI")]
 
 #[cfg(test)]
 use super::*;
 
 // TODO follow https://github.com/eriwen/lcov-to-cobertura-xml/blob/master/test/test_lcov_cobertura.py
+#[allow(clippy::float_cmp, reason = "works")]
 #[test]
 fn test_parse() {
     let lcov = r"
@@ -34,6 +34,7 @@ end_of_record
     assert!(class.methods.is_empty());
 }
 
+#[allow(clippy::float_cmp, reason = "works")]
 #[test]
 fn test_parse_with_functions() {
     let lcov = "TN:\nSF:foo/file.ext\nDA:1,1\nDA:2,0\nFN:1,(anonymous_1)\nFN:2,namedFn\nFNDA:1,(anonymous_1)\nend_of_record\n";
@@ -136,7 +137,7 @@ fn test_generate_cobertura_xml() {
 </coverage>"#;
     let demangler = demangle::NullDemangler::new();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1_346_815_648_000, demangler).unwrap();
     assert_eq!(lcov_xml, xml);
 }
 
@@ -148,7 +149,7 @@ fn test_demangle() {
     #[cfg(not(target_os = "macos"))]
     let demangler = demangle::CppDemangler::new("c++filt").unwrap();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1_346_815_648_000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "https://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage branch-rate="0" branches-covered="0" branches-valid="0" complexity="0" line-rate="1" lines-covered="4" lines-valid="4" timestamp="1346815648000" version="2.0.3">
@@ -190,7 +191,7 @@ fn test_demangle_rust() {
     let lcov = "TN:\nSF:foo/foo.cpp\nFN:3,_RNvC6_123foo3bar\nFNDA:1,_RINbNbCskIICzLVDPPb_5alloc5alloc8box_freeDINbNiB4_5boxed5FnBoxuEp6OutputuEL_ECs1iopQbuBiw2_3std\nFN:8,_RC3foo.llvm.9D1C9369\nFNDA:1,_RC3foo.llvm.9D1C9369\nDA:3,1\nDA:5,1\nDA:8,1\nDA:10,1\nend_of_record";
     let demangler = demangle::RustDemangler::new();
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
-    let lcov_xml = coverage_to_string(&result, 1346815648000, demangler).unwrap();
+    let lcov_xml = coverage_to_string(&result, 1_346_815_648_000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "https://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage branch-rate="0" branches-covered="0" branches-valid="0" complexity="0" line-rate="1" lines-covered="4" lines-valid="4" timestamp="1346815648000" version="2.0.3">

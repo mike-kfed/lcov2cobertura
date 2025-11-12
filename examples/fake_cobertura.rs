@@ -1,4 +1,4 @@
-//! executable to generate huge cobertura xml files containing fake data
+//! Executable to generate huge cobertura XML files containing fake data
 use std::io::Seek;
 use std::io::Write;
 use std::path::Path;
@@ -8,7 +8,7 @@ use clap::Parser;
 use quick_xml::events::{BytesEnd, BytesStart, BytesText, Event};
 use quick_xml::writer::Writer;
 
-/// Cmd line arguments
+/// Command line arguments
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -73,7 +73,7 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
         // classes
         writer.write_event(Event::Start(BytesStart::new("classes")))?;
 
-        for class_name in (0..10).map(|v| format!("class_{}", v)) {
+        for class_name in (0..10).map(|v| format!("class_{v}")) {
             let mut class = BytesStart::new("class");
             class.push_attribute(("branch-rate", "2.2"));
             class.push_attribute(("complexity", "0"));
@@ -84,7 +84,7 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
             // methods
             writer.write_event(Event::Start(BytesStart::new("methods")))?;
 
-            for (method_name, (line, hits)) in (0..100).map(|v| (format!("method_{}", v), (v, 1))) {
+            for (method_name, (line, hits)) in (0..100).map(|v| (format!("method_{v}"), (v, 1))) {
                 let mut method = BytesStart::new("method");
                 method.push_attribute(("name", method_name.as_str()));
                 method.push_attribute(("signature", ""));
@@ -92,7 +92,7 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
                 method.push_attribute(("line-rate", "0.4"));
                 method.push_attribute(("branch-rate", "1.2"));
                 writer.write_event(Event::Start(method))?;
-                // method lines (always exactly one?)
+                // Method lines (always exactly one?)
                 writer.write_event(Event::Start(BytesStart::new("lines")))?;
 
                 writer
@@ -125,7 +125,7 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
                 let total = 100;
                 let covered = 80;
                 let percentage = covered * 100 / total;
-                let cond_cov = format!("{}% ({}/{})", percentage, covered, total);
+                let cond_cov = format!("{percentage}% ({covered}/{total})");
                 attrs.push(("condition-coverage", cond_cov.as_str()));
                 writer
                     .create_element("line")
@@ -146,7 +146,6 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
 
     // close coverage
     writer.write_event(Event::End(BytesEnd::new("coverage")))?;
-    //let result = writer.into_inner().into_inner();
     Ok(())
 }
 

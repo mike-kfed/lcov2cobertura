@@ -1,4 +1,4 @@
-# lcov2xml
+# lcov2xml, cobertura_split
 
 Executable to convert lcov info files to cobertura XML format.
 
@@ -10,15 +10,15 @@ You can avoid installing those tools, because conversion functionality is also i
 
 ## Features
 
-- can demangle C++ names
-- can demangle rustc names
-- merges multiple lcov reports into one
-- can split big XML files into many smaller ones for GitLab attachment size limitation. strategy: it generates 9.5MB big xml files, fitting as many packages as possible into each file
+- Can demangle C++ names
+- Can demangle rustc names
+- Merges multiple lcov reports into one
+- Can split big XML files into many smaller ones for GitLab attachment size limitation. Strategy: it generates 9.5MB big XML files, fitting as many packages as possible into each file
 
 ## Usage
 
 ```bash
-# install using cargo
+# install using cargo (also installs cobertura_split)
 cargo install lcov2xml
 # inspect usage
 lcov2xml --help
@@ -28,7 +28,16 @@ lcov2xml lcov.info
 cobertura_split coverage.xml
 ```
 
-### available cmd-line args
+## Docker build
+
+One image per executable.
+
+```bash
+docker buildx build --tag lcov2xml -f lcov2xml.Dockerfile .
+docker buildx build --tag cobertura_split -f cobertura_split.Dockerfile .
+```
+
+### Available command-line arguments
 
 ```
 convert LCOV info file to cobertura XML format
@@ -51,10 +60,10 @@ Options:
 
 ## Performance
 
-Ran on a about 500KiB sized lcov.info file on macOS and measured the wall-clock time plus max RAM usage.
+Ran on an about 500KiB sized lcov.info file on macOS and measured the wall-clock time plus max RAM usage.
 Is faster in gross runtime but more importantly uses an order of magnitude less RAM.
 
-For the coverage.xml splitting tool input is a 100MB sized xml file. RAM usage is drastically reduced, so is runtime.
+For the coverage.xml splitting tool input is a 100MB sized XML file. RAM usage is drastically reduced, so is runtime.
 
 All times are measured after some warm-up runs to fill the disk cache.
 

@@ -7,7 +7,7 @@ use lcov2cobertura as lcov2xml;
 
 /// Cmd line arguments
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about = "Split cobertura XML into 9.5MB chunks", long_about = None)]
 struct Args {
     /// cobertura XML input file
     #[clap()]

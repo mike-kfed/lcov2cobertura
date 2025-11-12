@@ -14,6 +14,9 @@ You can avoid installing those tools, because conversion functionality is also i
 - Can demangle rustc names
 - Merges multiple lcov reports into one
 - Can split big XML files into many smaller ones for GitLab attachment size limitation. Strategy: it generates 9.5MB big XML files, fitting as many packages as possible into each file
+- Available on Docker hub:
+  - [lcov2xml](https://hub.docker.com/r/mikekfed/lcov2xml)
+  - [cobertura_split](https://hub.docker.com/r/mikekfed/cobertura_split)
 
 ## Usage
 

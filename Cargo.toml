@@ -13,7 +13,7 @@ rust-version = "1.73"
 
 [dependencies]
 anyhow = "1.0.95"
-clap = { version = "4.4", features = ["derive"]}
+clap = { version = "4.4", features = ["derive", "std"], default-features =  false }
 lcov = "0.8.1"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.6" }
 
@@ -27,7 +27,6 @@ strip = "symbols"
 unsafe_code = "forbid"
 warnings = "deny"
 ambiguous-associated-items = "forbid" 
-cenum-impl-drop-cast = "forbid"  
 coherence-leak-check = "forbid"  
 conflicting-repr-hints = "forbid"  
 const-evaluatable-unchecked = "forbid"  
@@ -39,8 +38,6 @@ invalid-type-param-default = "forbid"
 late-bound-lifetime-arguments = "forbid" 
 legacy-derive-helpers = "forbid" 
 macro-expanded-macro-exports-accessed-by-absolute-paths = "forbid" 
-missing-fragment-specifier = "forbid" 
-order-dependent-trait-objects = "forbid" 
 patterns-in-fns-without-body = "forbid" 
 private_bounds = "forbid"
 private_interfaces = "forbid"

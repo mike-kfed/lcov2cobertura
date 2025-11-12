@@ -13,6 +13,7 @@ mod tests;
 pub use cobertura_split::corbertura_xml_split;
 pub use demangle::{CppDemangler, Demangler, NullDemangler, RustDemangler};
 
+#[allow(clippy::cast_precision_loss)]
 fn percent(a: usize, b: usize) -> f64 {
     if a == 0 {
         0.
@@ -109,7 +110,7 @@ type FunctionHit = (usize, usize);
 pub struct Class {
     name: String,
     lines: HashMap<usize, Branch>,
-    methods: BTreeMap<String, FunctionHit>, // for deterministic sorted xml
+    methods: BTreeMap<String, FunctionHit>, // for deterministic sorted XML
     lines_covered: usize,
 }
 
@@ -149,6 +150,7 @@ impl CompSummary for Class {
 /// Branch data of coverage info
 #[derive(Debug, Default)]
 pub struct Branch {
+    #[allow(clippy::struct_field_names)]
     branch: bool,
     branches_total: usize,
     branches_covered: usize,
@@ -165,13 +167,11 @@ pub struct CoverageData {
 
 impl CompSummary for CoverageData {
     fn summary(&self) -> Summary {
-        let all = self.packages.values().map(|v| v.summary()).sum();
-        all
-        //self.cdsummary.clone() + all
+        self.packages.values().map(CompSummary::summary).sum()
     }
 }
 
-// safety: using lots of unwraps on HashMap entries, should be safe because only internal use
+// Safety: using lots of unwraps on HashMap entries, should be safe because only internal use
 // based on already parsed data which should have integrity. Malformed LCOV files might cause a
 // panic though.
 #[allow(clippy::unwrap_used)]
@@ -213,7 +213,7 @@ impl CoverageData {
         line_number: usize,
         branch_hits: usize,
     ) {
-        // insert default if missing to ensure entry exists
+        // Insert default if missing to ensure entry exists
         self.packages
             .get_mut(package_name)
             .unwrap()
@@ -293,6 +293,10 @@ impl CoverageData {
 }
 
 /// parses from filename
+///
+/// # Errors
+///
+/// Either IO error or errors parsing the lines.
 pub fn parse_file<P: AsRef<Path>>(
     filename: P,
     base_dir: P,
@@ -305,6 +309,11 @@ pub fn parse_file<P: AsRef<Path>>(
 }
 
 /// parses from iterator
+///
+/// # Errors
+///
+/// Either IO error or errors parsing the lines.
+#[allow(clippy::too_many_lines, reason = "TODO: FIXME")]
 pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
     lines: Lines<B>,
     base_dir: P,
@@ -326,13 +335,13 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
         let mut split = line.splitn(2, ':');
         let (input_type, line) = (split.next(), split.last());
 
+        #[allow(clippy::match_same_arms, reason = "easier to read the doc-strings")]
         match input_type {
             Some("SF") => {
                 let file_name = line.ok_or_else(|| anyhow::anyhow!("SF entry has no filename"))?;
                 let file_path = Path::new(file_name);
                 // TODO: was `relative_file_name = os.path.relpath(file_name, self.base_dir)`
                 // does not do the same as strip_prefix, but I am fairly certain it was the idea
-                // TODO: proper unwrap error handling
                 file_path
                     .strip_prefix(base_dir)
                     .unwrap_or(file_path)
@@ -431,13 +440,13 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                 }
             }
             Some("end_of_record") => (),
-            Some("FNF") => (), // FIXME  in real world data
-            Some("FNH") => (), // FIXME  in real world data
-            Some("LF") => (),  // FIXME  in real world data
-            Some("LH") => (),  // FIXME  in real world data
-            Some("TN") => (),  // is in tests input, does nothing?
+            Some("FNF") => (), // FIXME in real world data
+            Some("FNH") => (), // FIXME in real world data
+            Some("LF") => (),  // FIXME in real world data
+            Some("LH") => (),  // FIXME in real world data
+            Some("TN") => (),  // Is in tests input, does nothing?
             Some("") => (),    // empty line, skip
-            Some(it) => anyhow::bail!("unknown type{:?}", it),
+            Some(it) => anyhow::bail!("unknown type{it:?}"),
             None => anyhow::bail!("no input type for this line"),
         }
     }
@@ -450,7 +459,6 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
         for re in &excludes {
             if re.is_match(pkg_key) {
                 to_remove.push(pkg_key.to_owned());
-                continue;
             }
         }
     }
@@ -466,7 +474,15 @@ macro_rules! s {
     };
 }
 
-/// dumps cobertura XML into given Writer object
+/// Dumps cobertura XML into given Writer object
+///
+/// # Errors
+///
+/// IO Error
+///
+/// # Panics
+///
+/// unlikely
 pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
     writer: W,
     cov_data: &CoverageData,
@@ -532,7 +548,7 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
                 method.push_attribute(("line-rate", s!(line_rate)));
                 method.push_attribute(("branch-rate", s!(branch_rate)));
                 writer.write_event(Event::Start(method))?;
-                // method lines (always exactly one?)
+                // Method lines (always exactly one?)
                 writer.write_event(Event::Start(BytesStart::new("lines")))?;
 
                 writer
@@ -554,10 +570,9 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
             // add class lines
             writer.write_event(Event::Start(BytesStart::new("lines")))?;
             let mut line_keys: Vec<usize> = cd.lines.keys().copied().collect();
-            line_keys.sort();
+            line_keys.sort_unstable();
             for line_number in &line_keys {
-                // safety: guaranteed, using sorted keys as input
-                #[allow(clippy::unwrap_used)]
+                #[allow(clippy::unwrap_used, reason = "guaranteed, using sorted keys as input")]
                 let cd_line = cd.lines.get(line_number).unwrap();
                 let branch = cd_line.branch.to_string();
                 let hits = cd_line.hits.to_string();
@@ -572,7 +587,7 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
                     let total = cd_line.branches_total;
                     let covered = cd_line.branches_covered;
                     let percentage = covered * 100 / total;
-                    cond_cov = format!("{}% ({}/{})", percentage, covered, total);
+                    cond_cov = format!("{percentage}% ({covered}/{total})");
                     attrs.push(("condition-coverage", cond_cov.as_str()));
                 }
                 writer
@@ -599,7 +614,12 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
     Ok(writer.into_inner())
 }
 
-/// convenience function to convert coverage data into a XML String
+/// Convenience function to convert coverage data into an XML String
+///
+/// # Errors
+///
+/// - UTF-8 conversion
+/// - IO Error
 pub fn coverage_to_string<D: for<'a> Demangler<'a, 'a>>(
     cov_data: &CoverageData,
     timestamp: u64,
@@ -614,7 +634,12 @@ pub fn coverage_to_string<D: for<'a> Demangler<'a, 'a>>(
     Ok(output)
 }
 
-/// convenience function to write coverage data to a XML file
+/// Convenience function to write coverage data to an XML file
+///
+/// # Errors
+///
+/// - UTF-8 conversion
+/// - IO Error
 pub fn coverage_to_file<P: AsRef<Path>, D: for<'a> Demangler<'a, 'a>>(
     filename: P,
     cov_data: &CoverageData,

@@ -9,10 +9,10 @@ keywords = ["coverage", "gitlab", "cobertura", "lcov"]
 rust-version = "1.73"
 
 [dependencies]
-anyhow = "1.0.95"
-quick-xml = "0.37.2"
-regex = "1.11.1"
-rustc-demangle = "0.1.24"
+anyhow = "1.0.100"
+quick-xml = "0.38.4"
+regex = "1.12.2"
+rustc-demangle = "0.1.26"
 
 [lib]
 name = "lcov2cobertura"
@@ -57,3 +57,4 @@ suspicious = "forbid"
 style = "forbid"
 complexity = "forbid"
 perf = "forbid"
+pedantic = "deny"

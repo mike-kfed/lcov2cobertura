@@ -8,19 +8,24 @@ use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 use quick_xml::writer::Writer;
 
-const MAX_SIZE: usize = 9_500_000; // use below 10MB to be on the safe side
+const MAX_SIZE: usize = 9_500_000; // Use below 10 megabytes to be on the safe side
 
 /// Algorithm:
-/// - read from XML file using streaming parser
-/// - write to temporary bytes buffer until package tag is closed
-/// - verify that buffer appended to existing outfile does not surpass desired size
-/// - if surpassed, write and close current file then start new file with buffer contents
+///
+/// - Read from XML file using streaming parser.
+/// - Write to temporary bytes buffer until package tag is closed.
+/// - Verify that buffer appended to existing out-file does not surpass desired size.
+/// - If surpassed, write and close current file then start new file with buffer contents.
+///
+/// # Errors
+///
+/// IO Errors
 pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
     let source_fn = std::path::PathBuf::from(filename.as_ref());
     let mut file_no = 1;
     let mut file_size = 0;
     let mut reader = Reader::from_file(filename)?;
-    reader.config_mut().trim_text(true); // should be fine for cobertura files
+    reader.config_mut().trim_text(true); // Should be fine for cobertura files
     loop {
         let mut target_fn = source_fn.clone();
         let target_stem = target_fn
@@ -30,7 +35,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("no file stem"))?
             .to_string();
-        target_fn.set_file_name(format!("{}-{}.xml", target_stem_str, file_no).as_str());
+        target_fn.set_file_name(format!("{target_stem_str}-{file_no}.xml").as_str());
 
         let mut buf = Vec::new();
         let mut xml_buf = Vec::with_capacity(MAX_SIZE);
@@ -39,11 +44,11 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
         loop {
             match reader.read_event_into(&mut buf) {
                 Err(e) => anyhow::bail!("Error at position {}: {:?}", reader.buffer_position(), e),
-                // exits the loop when reaching end of file
+                // Exits the loop when reaching end of file
                 Ok(Event::Eof) => break,
-                Ok(Event::DocType(_)) | Ok(Event::Decl(_)) => (),
+                Ok(Event::DocType(_) | Event::Decl(_)) => (),
 
-                // write all OK events to output
+                // Write all OK events to output
                 Ok(e) => {
                     let write_event = match &e {
                         Event::Start(e) => {
@@ -60,8 +65,8 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 let mut outfile = std::fs::File::create(&target_fn)?;
                                 outfile.write_all(XML_HEADER.as_bytes())?;
                                 if file_no > 1 {
-                                    // write first found coverage element with all attributes!
-                                    // write sources with all source elements
+                                    // Write first found coverage element with all attributes.
+                                    // Write sources with all source elements.
                                     outfile.write_all(&coverage_head)?;
                                 }
                                 outfile.write_all(xml_buf)?;
@@ -71,7 +76,6 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 // important close outer tags
                                 writer.write_event(Event::End(BytesEnd::new("package")))?;
                                 let pos = writer.get_ref().get_ref().len();
-                                //println!("ENDED {}", pos);
                                 if xml_buf.len() + pos < MAX_SIZE {
                                     xml_buf.extend_from_slice(writer.get_ref().get_ref());
                                     writer =
@@ -86,7 +90,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                         Writer::new_with_indent(Cursor::new(Vec::new()), b' ', 4);
                                     file_no += 1;
                                     target_fn.set_file_name(
-                                        format!("{}-{}.xml", target_stem_str, file_no).as_str(),
+                                        format!("{target_stem_str}-{file_no}.xml").as_str(),
                                     );
                                 }
                                 false
@@ -94,7 +98,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 // XML finished write out current buffer
                                 xml_buf.extend_from_slice(b"\n    </packages>\n</coverage>");
                                 write_file(&xml_buf)?;
-                                xml_buf.clear(); // not really needed but why not
+                                xml_buf.clear(); // Not really needed but why not
                                 false
                             } else {
                                 true

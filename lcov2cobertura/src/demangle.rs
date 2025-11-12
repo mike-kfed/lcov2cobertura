@@ -1,4 +1,4 @@
-//! Interface and implemtation of different demanglers
+//! Interface and implementation of different demanglers
 use regex::Regex;
 use rustc_demangle::demangle;
 use std::borrow::Cow;
@@ -7,15 +7,19 @@ use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
 /// Basic interface to demangle function/method names
 pub trait Demangler<'a, 'b> {
-    /// demangles an identifier
+    /// Demangle an identifier
+    /// # Errors
+    /// IO Errors
     fn demangle(&'b mut self, ident: &'a str) -> io::Result<Cow<'a, str>>;
-    /// consumes the instance closing opened resources
+    /// Consumes the instance closing opened resources
+    /// # Errors
+    /// IO Errors
     fn stop(self) -> io::Result<()>;
 }
 
-/// C++ demangling, actually accepts any demangler tool that works over stdin/stdout
-/// it writes the mangled named to spawned process' stdin and reads the demangled response from
-/// stdout
+/// C++ demangling, actually accepts any demangler tool that works over standard input/standard output.
+/// It writes the mangled named to spawned process' standard input and reads the demangled response from
+/// standard output
 pub struct CppDemangler {
     child: Child,
     child_in: ChildStdin,
@@ -23,9 +27,16 @@ pub struct CppDemangler {
 }
 
 impl CppDemangler {
-    /// pass in full path to command that does the demangling
-    // safety: stdin/stdout is only taken once, panic unlikely
-    #[allow(clippy::unwrap_used, clippy::unwrap_in_result)]
+    /// Pass in full path to command that does the demangling.
+    /// # Errors
+    /// IO Errors
+    /// # Panics
+    /// unlikely
+    #[allow(
+        clippy::unwrap_used,
+        clippy::unwrap_in_result,
+        reason = "stdin/stdout is only taken once, panic unlikely"
+    )]
     pub fn new(cmd: &str) -> io::Result<Self> {
         let mut child = Command::new(cmd)
             .stdin(Stdio::piped())
@@ -43,7 +54,7 @@ impl CppDemangler {
 
 impl<'a> Demangler<'a, '_> for CppDemangler {
     fn demangle(&mut self, ident: &str) -> io::Result<Cow<'a, str>> {
-        self.child_in.write_all(format!("{}\n", ident).as_bytes())?;
+        self.child_in.write_all(format!("{ident}\n").as_bytes())?;
         let mut line = String::new();
         self.child_out.read_line(&mut line)?;
         Ok(Cow::Owned(line.trim().into()))
@@ -67,9 +78,14 @@ impl Default for RustDemangler {
 }
 
 impl RustDemangler {
-    /// creates the Regex instance needed for later demangling
-    // safety: regex is known to compile fine, no panic
-    #[allow(clippy::unwrap_used)]
+    /// Creates the Regex instance needed for later demangling.
+    /// # Panics
+    /// When regular expression is invalid.
+    #[allow(
+        clippy::unwrap_used,
+        reason = "regex is known to compile fine, no panic"
+    )]
+    #[must_use]
     pub fn new() -> Self {
         Self {
             disambiguator: Regex::new(r"\[[0-9a-f]{5,16}\]::").unwrap(),
@@ -89,7 +105,7 @@ impl<'a> Demangler<'a, '_> for RustDemangler {
     }
 }
 
-/// default demangler, does nothing to the identifier names
+/// Default demangler, does nothing to the identifier names.
 pub struct NullDemangler {}
 impl Default for NullDemangler {
     fn default() -> Self {
@@ -98,7 +114,8 @@ impl Default for NullDemangler {
 }
 
 impl NullDemangler {
-    /// constructs the NullDemangler
+    /// constructs the `NullDemangler`
+    #[must_use]
     pub fn new() -> Self {
         Self {}
     }

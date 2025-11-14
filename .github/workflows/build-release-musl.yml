@@ -12,7 +12,7 @@ on:
 jobs:
   build-and-release:
     name: Build for ${{ matrix.target }}
-    runs-on: "rust:1.81"
+    runs-on: rust-1.81
     
     # We use a build matrix to build for both architectures
     strategy:

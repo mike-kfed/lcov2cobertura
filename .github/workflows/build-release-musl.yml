@@ -1,0 +1,71 @@
+# Workflow to build statically linked MUSL based release binaries
+
+name: Build and Release Binaries
+
+# This workflow runs when a new GitHub Release is created.
+on:
+  release:
+    types: [created]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    name: Build for ${{ matrix.target }}
+    runs-on: "rust:1.81"
+    
+    # We use a build matrix to build for both architectures
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: |
+          apt update
+          apt install -y clang mold
+          rustup target add ${{ matrix.target }}
+
+      - name: Build binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Prepare binary for upload
+        id: prepare_binary
+        run: |
+          local bin_name="cobertura_split"
+          local bin_path="target/${{ matrix.target }}/release/${bin_name}"
+          local asset_name="${bin_name}-${{ matrix.target }}"
+          mv "${bin_path}" "${asset_name}"
+          echo "ASSET_PATH=./${asset_name}" >> $GITHUB_ENV
+          echo "ASSET_NAME=${asset_name}" >> $GITHUB_ENV
+          local bin_name="lcov2xml"
+          local bin_path="target/${{ matrix.target }}/release/${bin_name}"
+          local asset_name="${bin_name}-${{ matrix.target }}"
+          mv "${bin_path}" "${asset_name}"
+          echo "ASSET2_PATH=./${asset_name}" >> $GITHUB_ENV
+          echo "ASSET2_NAME=${asset_name}" >> $GITHUB_ENV
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.ASSET_PATH }}
+          asset_name: ${{ env.ASSET_NAME }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.ASSET2_PATH }}
+          asset_name: ${{ env.ASSET2_NAME }}
+          asset_content_type: application/octet-stream

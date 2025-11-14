@@ -54,6 +54,7 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
           files: |
             ${{ env.ASSET_PATH }}
             ${{ env.ASSET2_PATH }}

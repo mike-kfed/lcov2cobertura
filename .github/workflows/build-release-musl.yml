@@ -38,15 +38,15 @@ jobs:
       - name: Prepare binary for upload
         id: prepare_binary
         run: |
-          local bin_name="cobertura_split"
-          local bin_path="target/${{ matrix.target }}/release/${bin_name}"
-          local asset_name="${bin_name}-${{ matrix.target }}"
+          export bin_name="cobertura_split"
+          export bin_path="target/${{ matrix.target }}/release/${bin_name}"
+          export asset_name="${bin_name}-${{ matrix.target }}"
           mv "${bin_path}" "${asset_name}"
           echo "ASSET_PATH=./${asset_name}" >> $GITHUB_ENV
           echo "ASSET_NAME=${asset_name}" >> $GITHUB_ENV
-          local bin_name="lcov2xml"
-          local bin_path="target/${{ matrix.target }}/release/${bin_name}"
-          local asset_name="${bin_name}-${{ matrix.target }}"
+          export bin_name="lcov2xml"
+          export bin_path="target/${{ matrix.target }}/release/${bin_name}"
+          export asset_name="${bin_name}-${{ matrix.target }}"
           mv "${bin_path}" "${asset_name}"
           echo "ASSET2_PATH=./${asset_name}" >> $GITHUB_ENV
           echo "ASSET2_NAME=${asset_name}" >> $GITHUB_ENV

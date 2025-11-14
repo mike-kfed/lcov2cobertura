@@ -12,7 +12,8 @@ on:
 jobs:
   build-and-release:
     name: Build for ${{ matrix.target }}
-    runs-on: rust-1.81
+    # for list of options see https://docs.github.com/de/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idruns-on
+    runs-on: ubuntu-latest
     
     # We use a build matrix to build for both architectures
     strategy:

@@ -43,7 +43,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/lcov2xml:latest
 
       # 4. Build and push the image
-      - name: Build and push lcov2xml Docker image
+      - name: Build and push cobertura_split Docker image
         uses: docker/build-push-action@v5
         with:
           context: .

@@ -1,11 +1,11 @@
-FROM rust:1.81 AS builder
+FROM rust:1.85 AS builder
 
 WORKDIR /usr/src/app
 
 # Copy the project files
 COPY . .
 
-RUN cargo build --release
+RUN cargo build --release --bin lcov2xml
 
 # Final image
 FROM cgr.dev/chainguard/glibc-dynamic AS lcov2xml-final

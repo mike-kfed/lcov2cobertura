@@ -15,11 +15,7 @@ pub use demangle::{CppDemangler, Demangler, NullDemangler, RustDemangler};
 
 #[allow(clippy::cast_precision_loss)]
 fn percent(a: usize, b: usize) -> f64 {
-    if a == 0 {
-        0.
-    } else {
-        b as f64 / a as f64
-    }
+    if a == 0 { 0. } else { b as f64 / a as f64 }
 }
 
 /// Summary of coverage info
@@ -64,6 +60,11 @@ impl std::iter::Sum<Self> for Summary {
 
 trait CompSummary {
     fn summary(&self) -> Summary;
+}
+
+fn path_segments(path: &str) -> impl Iterator<Item = &str> {
+    path.split(['/', '\\'])
+        .filter(|segment| !segment.is_empty())
 }
 
 /// Package data of coverage info
@@ -116,10 +117,9 @@ pub struct Class {
 
 impl Class {
     fn from_fn(relative_file_name: &str) -> Self {
-        let elems = relative_file_name
-            .split(std::path::MAIN_SEPARATOR)
-            .collect::<Vec<&str>>();
-        let name = elems.join(".");
+        let name = path_segments(relative_file_name)
+            .collect::<Vec<&str>>()
+            .join(".");
         Self {
             name,
             ..Self::default()
@@ -350,10 +350,12 @@ pub fn parse_lines<P: AsRef<Path>, B: BufRead>(
                         anyhow::anyhow!("relative_file_name cannot be converted to string")
                     })?
                     .clone_into(&mut relative_file_name);
-                let elems = relative_file_name
-                    .split(std::path::MAIN_SEPARATOR)
-                    .collect::<Vec<&str>>();
-                package_name = elems[..elems.len() - 1].join(".");
+                let elems = path_segments(&relative_file_name).collect::<Vec<&str>>();
+                package_name = if elems.len() > 1 {
+                    elems[..elems.len() - 1].join(".")
+                } else {
+                    String::new()
+                };
                 cov_data
                     .packages
                     .entry(package_name.clone())

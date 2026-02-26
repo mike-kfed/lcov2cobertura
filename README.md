@@ -42,7 +42,7 @@ docker buildx build --tag cobertura_split -f cobertura_split.Dockerfile .
 
 ### Available command-line arguments
 
-```
+```shell
 convert LCOV info file to cobertura XML format
 
 Usage: lcov2xml [OPTIONS] [FILES]...

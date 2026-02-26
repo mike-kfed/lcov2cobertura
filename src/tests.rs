@@ -3,6 +3,20 @@
 #[cfg(test)]
 use super::*;
 
+#[cfg(test)]
+fn cpp_demangler_for_test() -> Option<CppDemangler> {
+    #[cfg(target_os = "macos")]
+    {
+        CppDemangler::new("/opt/homebrew/opt/binutils/bin/c++filt")
+            .or_else(|_| CppDemangler::new("c++filt"))
+            .ok()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        CppDemangler::new("c++filt").ok()
+    }
+}
+
 // TODO follow https://github.com/eriwen/lcov-to-cobertura-xml/blob/master/test/test_lcov_cobertura.py
 #[allow(clippy::float_cmp, reason = "works")]
 #[test]
@@ -82,7 +96,7 @@ fn test_exclude_package() {
 
 #[test]
 fn test_method_name_with_comma() {
-    let lcov =  "TN:\nSF:foo/file.ext\nDA:1,1\nDA:2,0\nFN:1,(anonymous_1<foo, bar>)\nFN:2,namedFn\nFNDA:1,(anonymous_1<foo, bar>)\nend_of_record\n";
+    let lcov = "TN:\nSF:foo/file.ext\nDA:1,1\nDA:2,0\nFN:1,(anonymous_1<foo, bar>)\nFN:2,namedFn\nFNDA:1,(anonymous_1<foo, bar>)\nend_of_record\n";
     let result = parse_lines(lcov.as_bytes().lines(), "", &[]).unwrap();
     let foo = result.packages.get("foo").unwrap();
     let class = foo.classes.get("foo/file.ext").unwrap();
@@ -101,9 +115,17 @@ fn test_treat_non_integer_line_execution_count_as_zero() {
 }
 
 #[test]
+fn test_path_segmentation_mixed_separators() {
+    let lcov = "SF:foo\\bar/baz.ext\nDA:1,1\nend_of_record\n";
+    let result = parse_lines(lcov.as_bytes().lines(), "", &[]).unwrap();
+    let package = result.packages.get("foo.bar").unwrap();
+    let class = package.classes.get("foo\\bar/baz.ext").unwrap();
+    assert_eq!(class.name, "foo.bar.baz.ext");
+}
+
+#[test]
 fn test_generate_cobertura_xml() {
-    let lcov =
-            "TN:\nSF:foo/file.ext\nDA:1,1\nDA:2,0\nBRDA:1,1,1,1\nBRDA:1,1,2,0\nFN:1,(anonymous_1)\nFN:2,namedFn\nFNDA:1,(anonymous_1)\nend_of_record\n";
+    let lcov = "TN:\nSF:foo/file.ext\nDA:1,1\nDA:2,0\nBRDA:1,1,1,1\nBRDA:1,1,2,0\nFN:1,(anonymous_1)\nFN:2,namedFn\nFNDA:1,(anonymous_1)\nend_of_record\n";
     let xml = r#"<?xml version="1.0" ?>
 <!DOCTYPE coverage SYSTEM "https://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage branch-rate="0.5" branches-covered="1" branches-valid="2" complexity="0" line-rate="0.5" lines-covered="1" lines-valid="2" timestamp="1346815648000" version="2.0.3">
@@ -144,10 +166,19 @@ fn test_generate_cobertura_xml() {
 #[test]
 fn test_demangle() {
     let lcov = "TN:\nSF:foo/foo.cpp\nFN:3,_ZN3Foo6answerEv\nFNDA:1,_ZN3Foo6answerEv\nFN:8,_ZN3Foo3sqrEi\nFNDA:1,_ZN3Foo3sqrEi\nDA:3,1\nDA:5,1\nDA:8,1\nDA:10,1\nend_of_record";
-    #[cfg(target_os = "macos")]
-    let demangler = demangle::CppDemangler::new("/opt/homebrew/opt/binutils/bin/c++filt").unwrap();
-    #[cfg(not(target_os = "macos"))]
-    let demangler = demangle::CppDemangler::new("c++filt").unwrap();
+    let Some(mut demangler) = cpp_demangler_for_test() else {
+        eprintln!("skipping test_demangle: c++filt not available");
+        return;
+    };
+    let probe = demangler.demangle("_ZN3Foo6answerEv");
+    let demangle_unavailable = match probe.as_deref() {
+        Ok(demangled_name) => demangled_name.starts_with("_Z"),
+        Err(_) => true,
+    };
+    if demangle_unavailable {
+        eprintln!("skipping test_demangle: c++filt does not demangle symbols on this system");
+        return;
+    }
     let result = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
     let lcov_xml = coverage_to_string(&result, 1_346_815_648_000, demangler).unwrap();
     let xml = r#"<?xml version="1.0" ?>

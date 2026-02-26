@@ -1,34 +1,21 @@
 [package]
-name = "lcov2xml"
+name = "lcov2cobertura"
 version = "1.0.7"
-edition = "2024"
+edition = "2021"
 license = "Apache-2.0"
 description = "convert LCOV info file to cobertura XML format"
 repository = "https://github.com/mike-kfed/lcov2cobertura"
 keywords = ["coverage", "gitlab", "cobertura", "lcov"]
-categories = ["command-line-utilities"]
-rust-version = "1.85"
-
-[workspace]
+rust-version = "1.81"
 
 [dependencies]
 anyhow = "1.0.100"
-clap = { version = "4.5", features = [
-    "derive",
-    "help",
-    "std",
-    "usage",
-], default-features = false }
-lcov = "0.8.1"
-lcov2cobertura = { path = "lcov2cobertura", version = "1.0.6" }
-
-[dev-dependencies]
 quick-xml = "0.38.4"
+regex = "1.12.2"
+rustc-demangle = "0.1.26"
 
-[profile.release]
-strip = "symbols"
-lto = "fat"
-opt-level = "s"
+[lib]
+name = "lcov2cobertura"
 
 [lints.rust]
 unsafe_code = "forbid"

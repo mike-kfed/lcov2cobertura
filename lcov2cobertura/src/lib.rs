@@ -15,7 +15,11 @@ pub use demangle::{CppDemangler, Demangler, NullDemangler, RustDemangler};
 
 #[allow(clippy::cast_precision_loss)]
 fn percent(a: usize, b: usize) -> f64 {
-    if a == 0 { 0. } else { b as f64 / a as f64 }
+    if a == 0 {
+        0.
+    } else {
+        b as f64 / a as f64
+    }
 }
 
 /// Summary of coverage info

@@ -18,7 +18,7 @@ lcov = "0.8.2"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.6" }
 
 [dev-dependencies]
-quick-xml = "0.41.0"
+quick-xml = "0.42.0"
 
 [lints.clippy]
 complexity = "deny"

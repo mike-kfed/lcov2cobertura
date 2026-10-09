@@ -72,8 +72,14 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      # keep in sync with rust-version in Cargo.toml
-      - uses: dtolnay/rust-toolchain@1.87
+      # MSRV is taken from rust-version in Cargo.toml. It is passed as input
+      # instead of the action ref (e.g. @1.87), so dependabot does not bump it.
+      - name: Read MSRV from Cargo.toml
+        id: msrv
+        run: echo "version=$(sed -n 's/^rust-version *= *"\(.*\)"/\1/p' Cargo.toml)" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
       - uses: Swatinem/rust-cache@v2
       - run: cargo check --workspace --bins --examples --tests
 

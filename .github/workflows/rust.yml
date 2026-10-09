@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: formatting
-      run: cargo fmt --all -- --check
+      run: cargo +nightly fmt --all -- --check
     - name: quality
       run: cargo clippy --workspace --bins --examples --tests --no-deps
     - name: Build

@@ -1,0 +1,3 @@
+# only on +nightly
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"

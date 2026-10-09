@@ -1,0 +1,5 @@
+[format]
+[format.rules]
+indent-width = 4
+line-width = 120
+trailing-comment-space-width = 1

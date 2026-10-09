@@ -56,7 +56,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                 Ok(e) => {
                     let write_event = match &e {
                         Event::Start(e) => {
-                            if e.name().as_ref() == b"package" {
+                            if e.name().as_ref() == "package" {
                                 // write coverage/sources "header" to buffer for later use
                                 if coverage_head.is_empty() {
                                     coverage_head.extend_from_slice(writer.get_ref().get_ref());
@@ -76,7 +76,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                 outfile.write_all(xml_buf)?;
                                 Ok(())
                             };
-                            if e.name().as_ref() == b"package" {
+                            if e.name().as_ref() == "package" {
                                 // important close outer tags
                                 writer.write_event(Event::End(BytesEnd::new("package")))?;
                                 let pos = writer.get_ref().get_ref().len();
@@ -98,7 +98,7 @@ pub fn corbertura_xml_split<P: AsRef<Path>>(filename: P) -> anyhow::Result<()> {
                                     );
                                 }
                                 false
-                            } else if e.name().as_ref() == b"coverage" {
+                            } else if e.name().as_ref() == "coverage" {
                                 // XML finished write out current buffer
                                 xml_buf.extend_from_slice(b"\n    </packages>\n</coverage>");
                                 write_file(&xml_buf)?;

@@ -131,7 +131,7 @@ fn generate_cobertura_xml<P: AsRef<Path>>(filename: P, min_size: usize) -> anyho
                 attrs.push(("condition-coverage", cond_cov.as_str()));
                 writer
                     .create_element("line")
-                    .with_attributes(attrs.into_iter())
+                    .with_attributes(attrs)
                     .write_empty()?;
 
                 // close class lines

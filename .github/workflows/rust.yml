@@ -5,22 +5,69 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  fmt:
+    name: Formatting
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: formatting
-      run: cargo +nightly fmt --all -- --check
-    - name: quality
-      run: cargo clippy --workspace --bins --examples --tests --no-deps
-    - name: Build
-      run: cargo check --workspace --bins --examples --tests
-    - name: Run tests
-      run: cargo test --release --workspace
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # .rustfmt.toml uses options that are only available on nightly
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo +nightly fmt --all -- --check
+
+  check:
+    name: Clippy, tests and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Clippy
+        run: cargo clippy --workspace --bins --examples --tests --no-deps
+      - name: Tests
+        run: cargo test --release --workspace
+      - name: Docs
+        run: cargo doc --workspace --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  msrv:
+    name: Minimum supported Rust version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # keep in sync with rust-version in Cargo.toml
+      - uses: dtolnay/rust-toolchain@1.87
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --workspace --bins --examples --tests
+
+  deny:
+    name: Licenses and advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@v2

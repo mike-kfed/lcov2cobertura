@@ -2,59 +2,73 @@
 
 name: Build and Release Binaries
 
-# This workflow runs when a new GitHub Release is created.
 on:
   release:
-    types: [created]
-  # Allows you to run this workflow manually from the Actions tab
+    types: [ "published" ]
+  # Allows you to (re-)build the binaries of an existing release from the Actions tab
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to build and upload binaries for (e.g. 1.0.11)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
 
 jobs:
   build-and-release:
     name: Build for ${{ matrix.target }}
-    # for list of options see https://docs.github.com/de/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idruns-on
-    runs-on: ubuntu-latest
-    
-    # We use a build matrix to build for both architectures
+    # native runners for each architecture, no cross compilation needed
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: write
     strategy:
+      fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-musl
+        include:
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-24.04
+          - target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
 
       - name: Install Rust toolchain
-        run: |
-          sudo apt update
-          sudo apt install -y clang mold
-          rustup target add ${{ matrix.target }}
-
-      - name: Build binary
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Prepare binary for upload
-        id: prepare_binary
-        run: |
-          export bin_name="cobertura_split"
-          export bin_path="target/${{ matrix.target }}/release/${bin_name}"
-          export asset_name="${bin_name}-${{ matrix.target }}"
-          mv "${bin_path}" "${asset_name}"
-          echo "ASSET_PATH=./${asset_name}" >> $GITHUB_ENV
-          echo "ASSET_NAME=${asset_name}" >> $GITHUB_ENV
-          export bin_name="lcov2xml"
-          export bin_path="target/${{ matrix.target }}/release/${bin_name}"
-          export asset_name="${bin_name}-${{ matrix.target }}"
-          mv "${bin_path}" "${asset_name}"
-          echo "ASSET2_PATH=./${asset_name}" >> $GITHUB_ENV
-          echo "ASSET2_NAME=${asset_name}" >> $GITHUB_ENV
-
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@v2
+        uses: dtolnay/rust-toolchain@stable
         with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            ${{ env.ASSET_PATH }}
-            ${{ env.ASSET2_PATH }}
+          targets: ${{ matrix.target }}
+
+      # linker settings for the musl targets live in .cargo/config.toml
+      - name: Install linker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang mold
+
+      - name: Build binaries
+        run: cargo build --release --target ${{ matrix.target }} --bins
+
+      - name: Prepare binaries for upload
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir dist
+          for bin_name in lcov2xml cobertura_split; do
+            cp "target/${TARGET}/release/${bin_name}" "dist/${bin_name}-${TARGET}"
+          done
+          cd dist && sha256sum * > "SHA256SUMS-${TARGET}"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: dist/*

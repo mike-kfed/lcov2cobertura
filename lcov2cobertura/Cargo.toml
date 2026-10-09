@@ -12,10 +12,10 @@ keywords = ["cobertura", "coverage", "gitlab", "lcov"]
 name = "lcov2cobertura"
 
 [dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 quick-xml = "0.41.0"
-regex = "1.12.3"
-rustc-demangle = "0.1.27"
+regex = "1.13.1"
+rustc-demangle = "0.1.28"
 
 [lints.clippy]
 complexity = "forbid"

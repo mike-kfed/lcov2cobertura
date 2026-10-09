@@ -12,9 +12,9 @@ categories = ["command-line-utilities"]
 [workspace]
 
 [dependencies]
-anyhow = "1.0.102"
-clap = { version = "4.5", default-features = false, features = ["derive", "help", "std", "usage"] }
-lcov = "0.8.1"
+anyhow = "1.0.104"
+clap = { version = "4.6", default-features = false, features = ["derive", "help", "std", "usage"] }
+lcov = "0.8.2"
 lcov2cobertura = { path = "lcov2cobertura", version = "1.0.6" }
 
 [dev-dependencies]

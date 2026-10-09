@@ -592,7 +592,7 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
                 }
                 writer
                     .create_element("line")
-                    .with_attributes(attrs.into_iter())
+                    .with_attributes(attrs)
                     .write_empty()?;
 
                 // close class lines

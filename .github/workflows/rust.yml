@@ -31,6 +31,20 @@ jobs:
           components: rustfmt
       - run: cargo +nightly fmt --all -- --check
 
+  toml:
+    name: TOML formatting and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: tombi-toml/setup-tombi@v1
+      # without arguments tombi checks all TOML files in the repository
+      - name: Formatting
+        run: tombi format --check --diff
+      - name: Lint
+        run: tombi lint
+
   check:
     name: Clippy, tests and docs
     runs-on: ubuntu-latest
@@ -76,7 +90,7 @@ jobs:
   # rule does not need to change when jobs are added or renamed.
   build:
     if: always()
-    needs: [ fmt, check, msrv, deny ]
+    needs: [ fmt, toml, check, msrv, deny ]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed

@@ -1,6 +1,7 @@
 //! Library to convert lcov data to cobertura XML files
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, HashMap, HashSet},
+    fmt::Write as _,
     io::{BufRead, Cursor, Lines, Write},
     path::Path,
 };
@@ -474,20 +475,89 @@ macro_rules! s {
     };
 }
 
+fn rust_crate_id(symbol: &str) -> Option<u64> {
+    if !symbol.trim_start_matches('_').starts_with('R') {
+        return None;
+    }
+    let full_name = rustc_demangle::try_demangle(symbol).ok()?.to_string();
+    let (root, _) = full_name.split_once("::")?;
+    let (_, id) = root.strip_suffix(']')?.rsplit_once('[')?;
+    if (1..=16).contains(&id.len()) && id.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        u64::from_str_radix(id, 16).ok()
+    } else {
+        None
+    }
+}
+
+#[derive(Clone, Copy)]
+enum SignatureRule {
+    NoSuffix,
+    CrateId,
+    Symbol,
+}
+
+fn method_signature_rules<'a>(
+    methods: &BTreeMap<String, FunctionHit>,
+    names: &'a [String],
+) -> anyhow::Result<HashMap<&'a str, SignatureRule>> {
+    let mut rules = HashMap::new();
+    for name in names.iter().map(String::as_str) {
+        rules
+            .entry(name)
+            .and_modify(|rule| *rule = SignatureRule::CrateId)
+            .or_insert(SignatureRule::NoSuffix);
+    }
+
+    let mut seen_ids = HashSet::new();
+    let mut label = String::new();
+    for (symbol, name) in methods.keys().zip(names.iter().map(String::as_str)) {
+        if !matches!(rules[name], SignatureRule::CrateId) {
+            continue;
+        }
+        if let Some(id) = rust_crate_id(symbol) {
+            label.clear();
+            write!(label, "{name} [{id:x}]")?;
+            if !rules.contains_key(label.as_str()) && seen_ids.insert((name, id)) {
+                continue;
+            }
+        }
+        rules.insert(name, SignatureRule::Symbol);
+    }
+    Ok(rules)
+}
+
 fn write_methods<D: for<'a> Demangler<'a, 'a>, W: Write>(
     writer: &mut Writer<W>,
     methods: &BTreeMap<String, FunctionHit>,
     demangler: &mut D,
 ) -> anyhow::Result<()> {
+    let names = methods
+        .keys()
+        .map(|symbol| demangler.demangle(symbol).map(std::borrow::Cow::into_owned))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    let rules = method_signature_rules(methods, &names)?;
     // methods
     writer.write_event(Event::Start(BytesStart::new("methods")))?;
 
-    for (method_name, (line, hits)) in methods {
+    let mut signature = String::new();
+    for ((symbol, (line, hits)), name) in methods.iter().zip(names.iter().map(String::as_str)) {
+        signature.clear();
+        match rules[name] {
+            SignatureRule::NoSuffix => {}
+            SignatureRule::CrateId => {
+                let id = rust_crate_id(symbol).ok_or_else(|| {
+                    anyhow::anyhow!("Missing crate ID for validated symbol {symbol}")
+                })?;
+                write!(signature, " [{id:x}]")?;
+            }
+            SignatureRule::Symbol => write!(signature, " [{symbol}]")?,
+        }
+
         let mut method = BytesStart::new("method");
         let line_rate = if *hits > 0 { 1. } else { 0. };
         let branch_rate = if *hits > 0 { 1. } else { 0. };
-        method.push_attribute(("name", demangler.demangle(method_name.as_str())?.as_ref()));
-        method.push_attribute(("signature", ""));
+        method.push_attribute(("name", name));
+        method.push_attribute(("signature", signature.as_str()));
         method.push_attribute(("complexity", "0"));
         method.push_attribute(("line-rate", s!(line_rate)));
         method.push_attribute(("branch-rate", s!(branch_rate)));
@@ -515,6 +585,9 @@ fn write_methods<D: for<'a> Demangler<'a, 'a>, W: Write>(
 }
 
 /// Dumps cobertura XML into given Writer object
+///
+/// Same-class name collisions use crate IDs only if they distinguish every method
+/// in the group. Otherwise the group uses original symbols in its signatures.
 ///
 /// # Errors
 ///

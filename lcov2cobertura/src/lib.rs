@@ -474,6 +474,46 @@ macro_rules! s {
     };
 }
 
+fn write_methods<D: for<'a> Demangler<'a, 'a>, W: Write>(
+    writer: &mut Writer<W>,
+    methods: &BTreeMap<String, FunctionHit>,
+    demangler: &mut D,
+) -> anyhow::Result<()> {
+    // methods
+    writer.write_event(Event::Start(BytesStart::new("methods")))?;
+
+    for (method_name, (line, hits)) in methods {
+        let mut method = BytesStart::new("method");
+        let line_rate = if *hits > 0 { 1. } else { 0. };
+        let branch_rate = if *hits > 0 { 1. } else { 0. };
+        method.push_attribute(("name", demangler.demangle(method_name.as_str())?.as_ref()));
+        method.push_attribute(("signature", ""));
+        method.push_attribute(("complexity", "0"));
+        method.push_attribute(("line-rate", s!(line_rate)));
+        method.push_attribute(("branch-rate", s!(branch_rate)));
+        writer.write_event(Event::Start(method))?;
+        // Method lines (always exactly one?)
+        writer.write_event(Event::Start(BytesStart::new("lines")))?;
+
+        writer
+            .create_element("line")
+            .with_attributes([
+                ("hits", s!(hits)),
+                ("number", s!(line)),
+                ("branch", "false"),
+            ])
+            .write_empty()?;
+
+        // close method lines
+        writer.write_event(Event::End(BytesEnd::new("lines")))?;
+
+        // close methods
+        writer.write_event(Event::End(BytesEnd::new("method")))?;
+    }
+    writer.write_event(Event::End(BytesEnd::new("methods")))?;
+    Ok(())
+}
+
 /// Dumps cobertura XML into given Writer object
 ///
 /// # Errors
@@ -535,38 +575,7 @@ pub fn dump_xml<D: for<'a> Demangler<'a, 'a>, W: Write>(
             class.push_attribute(("line-rate", s!(cd_sum.line_rate())));
             class.push_attribute(("name", cd.name.as_str()));
             writer.write_event(Event::Start(class))?;
-            // methods
-            writer.write_event(Event::Start(BytesStart::new("methods")))?;
-
-            for (method_name, (line, hits)) in &cd.methods {
-                let mut method = BytesStart::new("method");
-                let line_rate = if *hits > 0 { 1. } else { 0. };
-                let branch_rate = if *hits > 0 { 1. } else { 0. };
-                method.push_attribute(("name", demangler.demangle(method_name.as_str())?.as_ref()));
-                method.push_attribute(("signature", ""));
-                method.push_attribute(("complexity", "0"));
-                method.push_attribute(("line-rate", s!(line_rate)));
-                method.push_attribute(("branch-rate", s!(branch_rate)));
-                writer.write_event(Event::Start(method))?;
-                // Method lines (always exactly one?)
-                writer.write_event(Event::Start(BytesStart::new("lines")))?;
-
-                writer
-                    .create_element("line")
-                    .with_attributes([
-                        ("hits", s!(hits)),
-                        ("number", s!(line)),
-                        ("branch", "false"),
-                    ])
-                    .write_empty()?;
-
-                // close method lines
-                writer.write_event(Event::End(BytesEnd::new("lines")))?;
-
-                // close methods
-                writer.write_event(Event::End(BytesEnd::new("method")))?;
-            }
-            writer.write_event(Event::End(BytesEnd::new("methods")))?;
+            write_methods(&mut writer, &cd.methods, &mut demangler)?;
             // add class lines
             writer.write_event(Event::Start(BytesStart::new("lines")))?;
             let mut line_keys: Vec<usize> = cd.lines.keys().copied().collect();

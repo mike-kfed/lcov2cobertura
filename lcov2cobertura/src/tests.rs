@@ -186,6 +186,55 @@ fn test_demangle() {
 }
 
 #[test]
+fn test_rust_method_signatures_preserve_hit_counts() {
+    use std::fmt::Write as _;
+
+    let cold = "_RNvCsa000000_4demo1f";
+    let hot = "_RNvCsb000000_4demo1f";
+    let shared_a = "_RNvCsa000000_4demo1gC3alt";
+    let shared_b = "_RNvCsa000000_4demo1gC3dep";
+    let distinct = "_RNvCsb000000_4demo1g";
+    let with_id = "_RNvCsa000000_4demo1h";
+    let blocked = "_RNvCsa000000_4demo1k";
+    let unblocked = "_RNvCsb000000_4demo1k";
+    let reserved_id = "demo::k [843f942282]";
+    let cases = [
+        (hot, ["demo::f", " [917922f2c2]", "7"]),
+        (cold, ["demo::f", " [843f942282]", "0"]),
+        (shared_a, ["demo::g", &format!(" [{shared_a}]"), "2"]),
+        (shared_b, ["demo::g", &format!(" [{shared_b}]"), "0"]),
+        (distinct, ["demo::g", &format!(" [{distinct}]"), "1"]),
+        (with_id, ["demo::h", &format!(" [{with_id}]"), "1"]),
+        ("demo::h", ["demo::h", " [demo::h]", "1"]),
+        (blocked, ["demo::k", &format!(" [{blocked}]"), "1"]),
+        (unblocked, ["demo::k", &format!(" [{unblocked}]"), "2"]),
+        (reserved_id, [reserved_id, "", "1"]),
+    ];
+    let mut lcov = String::from("SF:demo/lib.rs\n");
+    for (symbol, [_, _, hits]) in &cases {
+        writeln!(lcov, "FN:1,{symbol}\nFNDA:{hits},{symbol}").unwrap();
+    }
+    lcov.push_str("DA:1,16\nend_of_record\n");
+    let coverage = parse_lines(lcov.as_bytes().lines(), ".", &[]).unwrap();
+    let xml = coverage_to_string(&coverage, 0, demangle::RustDemangler::new()).unwrap();
+
+    let method = regex::Regex::new(
+        r#"<method name="([^"]*)" signature="([^"]*)"[^>]*>\s*<lines>\s*<line hits="(\d+)""#,
+    )
+    .unwrap();
+    let mut methods: Vec<_> = method
+        .captures_iter(&xml)
+        .map(|capture| capture.extract::<3>().1)
+        .collect();
+    let mut expected = cases.map(|(_, method)| method);
+    methods.sort_unstable();
+    expected.sort_unstable();
+
+    assert_eq!(methods, expected);
+    assert!(xml.contains("lines-covered=\"1\" lines-valid=\"1\""));
+}
+
+#[test]
 fn test_demangle_rust() {
     let lcov = "TN:\nSF:foo/foo.cpp\nFN:3,_RNvC6_123foo3bar\nFNDA:1,_RINbNbCskIICzLVDPPb_5alloc5alloc8box_freeDINbNiB4_5boxed5FnBoxuEp6OutputuEL_ECs1iopQbuBiw2_3std\nFN:8,_RC3foo.llvm.9D1C9369\nFNDA:1,_RC3foo.llvm.9D1C9369\nDA:3,1\nDA:5,1\nDA:8,1\nDA:10,1\nend_of_record";
     let demangler = demangle::RustDemangler::new();
